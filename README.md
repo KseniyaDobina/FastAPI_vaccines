@@ -1,2 +1,5 @@
 # api_testing
-API testing
+Тестирование API
+
+Тестировался сервис [reqres.in](https://reqres.in) 
+
