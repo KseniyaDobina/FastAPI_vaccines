@@ -1,23 +1,6 @@
 import requests
 from config import settings
 
-def get_user(url='', user:bool=True):
-    """
-
-    :param url:
-    :return:
-    """
-    print(url, user)
-    if user:
-        print(2)
-        print(url, user)
-        headers = {"x-api-key": settings.USER_KEY}
-        return requests.get(url, headers=headers)
-    else:
-        print(1)
-        print(url, user)
-        print(url)
-        return requests.get(url)
 
 def test_authenticated_user_get_users():
     """
