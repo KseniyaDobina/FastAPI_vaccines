@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from models.db_models import create_database, delete_database
+from models.database import create_database, delete_database
 from fastapi import FastAPI
 
 from routers import vaccines
