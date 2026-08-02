@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
-class Vaccine(BaseModel):
+class VaccineAdd(BaseModel):
     disease: str
     vaccine_name: str
     # vaccination_date: date
@@ -10,6 +10,10 @@ class Vaccine(BaseModel):
     country: str
     city: str
     notes: str | None = None
+
+class VaccineID(VaccineAdd):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
 
 class VaccineUpdate(BaseModel):
     disease: str | None = None

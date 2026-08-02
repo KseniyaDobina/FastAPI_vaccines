@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
 
-from models.schemas import Vaccine
+from models.schemas import VaccineAdd
+from models.db_models import VaccineRepository
 from routers import depends
 
 router = APIRouter(
@@ -12,16 +12,22 @@ router = APIRouter(
 fake_database = []
 
 @router.get("")
-def vaccines(pagination: dict = Depends(depends.pagination_parameters)):
+async def get_all_vaccines(pagination: dict = Depends(depends.pagination_parameters)):
+    """
+    Получение списка всех вакцин
+    :param pagination: пагинация ограничивает количество вакцин
+    :return: список вакцин
+    """
     skip = pagination["skip"]
     limit = pagination["limit"]
+    vaccines = await VaccineRepository.get_vaccines()
     return {"message": "Список вакцин",
             "skip": skip,
             "limit": limit,
-            "vaccines": fake_database}
+            "vaccines": vaccines}
 
 @router.get("/{vaccine_id}")
-def get_vaccines(vaccine_id: int):
+async def get_vaccine(vaccine_id: int):
     for idx, vaccine in enumerate(fake_database):
         if vaccine["id"] == vaccine_id:
             return {"message": f"Информация о вакцине №{vaccine_id}",
@@ -30,20 +36,23 @@ def get_vaccines(vaccine_id: int):
     raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
 @router.post("")
-def create_vaccines(vaccine: Vaccine):
+async def create_vaccine(vaccine: VaccineAdd = Depends()):
     """
     Создание записи о новой вакцинации
     :param vaccine: вакцина
     :return: 201 если создана, в других случаях ошибку
     """
-    new_vaccine = vaccine.model_dump()
-    new_vaccine["id"] = len(fake_database) + 1
-    fake_database.append(new_vaccine)
-    return {"message": f"Добавлена вакцина {new_vaccine['id']}",
-            "vaccine": vaccine}
+    new_vaccine = await VaccineRepository.add_vaccines(vaccine)
+    return {"message": f"Добавлена вакцина {new_vaccine.id}",
+            "vaccine": new_vaccine}
+    # new_vaccine = vaccine.model_dump()
+    # new_vaccine["id"] = len(fake_database) + 1
+    # fake_database.append(new_vaccine)
+    # return {"message": f"Добавлена вакцина {new_vaccine['id']}",
+    #         "vaccine": vaccine}
 
 @router.put("/{vaccine_id}")
-def put_vaccines(vaccine_id: int, vaccine: Vaccine):
+async def put_vaccine(vaccine_id: int, vaccine: VaccineAdd):
     """
     Обновление информации о вакцинации
     :param vaccine_id: id вакцины
@@ -60,11 +69,11 @@ def put_vaccines(vaccine_id: int, vaccine: Vaccine):
     raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
 @router.patch("/{vaccine_id}")
-def patch_vaccines(vaccine_id: int):
+async def patch_vaccine(vaccine_id: int):
     return {"message": f"Частично изменены данные о вакцине №{vaccine_id}"}
 
 @router.delete("/{vaccine_id}")
-def delete_vaccines(vaccine_id: int):
+async def delete_vaccine(vaccine_id: int):
     for idx, vaccine in enumerate(fake_database):
         if vaccine["id"] == vaccine_id:
             del fake_database[idx]
