@@ -26,15 +26,6 @@ async def get_all_vaccines(pagination: dict = Depends(depends.pagination_paramet
             "limit": limit,
             "vaccines": vaccines}
 
-@router.get("/{vaccine_id}")
-async def get_vaccine(vaccine_id: int):
-    for idx, vaccine in enumerate(fake_database):
-        if vaccine["id"] == vaccine_id:
-            return {"message": f"Информация о вакцине №{vaccine_id}",
-                    "vaccine": vaccine}
-
-    raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
-
 @router.post("")
 async def create_vaccine(vaccine: VaccineAdd):
     """
@@ -45,11 +36,15 @@ async def create_vaccine(vaccine: VaccineAdd):
     new_vaccine = await VaccineRepository.add_vaccines(vaccine)
     return {"message": f"Добавлена вакцина {new_vaccine.id}",
             "vaccine": new_vaccine}
-    # new_vaccine = vaccine.model_dump()
-    # new_vaccine["id"] = len(fake_database) + 1
-    # fake_database.append(new_vaccine)
-    # return {"message": f"Добавлена вакцина {new_vaccine['id']}",
-    #         "vaccine": vaccine}
+
+@router.get("/{vaccine_id}")
+async def get_vaccine(vaccine_id: int):
+    for idx, vaccine in enumerate(fake_database):
+        if vaccine["id"] == vaccine_id:
+            return {"message": f"Информация о вакцине №{vaccine_id}",
+                    "vaccine": vaccine}
+
+    raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
 @router.put("/{vaccine_id}")
 async def put_vaccine(vaccine_id: int, vaccine: VaccineAdd):
