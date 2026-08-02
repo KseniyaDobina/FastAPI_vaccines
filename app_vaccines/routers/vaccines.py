@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 
 from models.schemas import VaccineAdd
-from models.db_models import VaccineRepository
+from models.repository import VaccineRepository
 from routers import depends
 
 router = APIRouter(
@@ -27,7 +27,7 @@ async def get_all_vaccines(pagination: dict = Depends(depends.pagination_paramet
             "vaccines": vaccines}
 
 @router.post("")
-async def create_vaccine(vaccine: VaccineAdd):
+async def create_vaccine(vaccine: VaccineAdd = Depends()):
     """
     Создание записи о новой вакцинации
     :param vaccine: вакцина
@@ -39,12 +39,12 @@ async def create_vaccine(vaccine: VaccineAdd):
 
 @router.get("/{vaccine_id}")
 async def get_vaccine(vaccine_id: int):
-    for idx, vaccine in enumerate(fake_database):
-        if vaccine["id"] == vaccine_id:
-            return {"message": f"Информация о вакцине №{vaccine_id}",
-                    "vaccine": vaccine}
-
-    raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
+    vaccine = await VaccineRepository.get_vaccine_id(vaccine_id)
+    if vaccine:
+        return {"message": f"Информация о вакцине №{vaccine.id}",
+                "vaccine": vaccine}
+    else:
+        raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
 @router.put("/{vaccine_id}")
 async def put_vaccine(vaccine_id: int, vaccine: VaccineAdd):
