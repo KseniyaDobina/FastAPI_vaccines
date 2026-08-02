@@ -6,7 +6,7 @@ class Base(DeclarativeBase):
     pass
 
 
-class VaccineORM(Base):
+class VaccineBase(Base):
     __tablename__ = 'vaccines'
     id: Mapped[int] = mapped_column(primary_key=True)
     disease: Mapped[str]
