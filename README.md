@@ -20,8 +20,9 @@ REST API для ведения личного журнала вакцинаци�
 - Полное обновление записи
 - Частичное обновление записи (в разработке)
 - Удаление записи
-
-Для хранения данных пока используется временное хранилище (`fake_database`).
+- Асинхронная работа с SQLite
+- Автоматическое создание таблиц при запуске приложения
+- Автоматическая документация Swagger/OpenAPI
 
 ---
 
@@ -29,9 +30,11 @@ REST API для ведения личного журнала вакцинаци�
 
 - Python 3.13
 - FastAPI
-- Pydantic
+- SQLAlchemy 2.0 (Async ORM)
+- SQLite
+- Pydantic v2
 - Uvicorn
-- Pytest (для тестирования)
+- Pytest (планируется для тестирования API)
 
 ---
 
@@ -42,7 +45,7 @@ api_testing/
 │
 ├── app_vaccines/
 │   ├── models/
-│   │   ├── models.py
+│   │   ├── db_models.py
 │   │   └── schemas.py
 │   │
 │   ├── routers/
@@ -50,37 +53,34 @@ api_testing/
 │   │   ├── users.py
 │   │   └── vaccines.py
 │   │
-│   └── main.py
+│   ├── main.py
+│   └── vaccines_db.sqlite3
 │
 ├── config/
-│   ├── settings.py
-│   └── .env
+│   ├── .env
+│   └── settings.py
 │
 ├── tests/
 │   ├── auth_test.py
 │   └── test_api.py
 │
+├── Dockerfile
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## Swagger UI
+## Архитектура приложения
 
-Документация автоматически генерируется FastAPI.
+Проект построен с разделением ответственности:
 
-Swagger:
+- **routers** — обработка HTTP-запросов;
+- **schemas** — модели Pydantic для валидации данных;
+- **db_models** — ORM-модели SQLAlchemy и работа с базой данных через Repository;
+- **depends** — зависимости FastAPI (например, пагинация).
 
-```
-http://127.0.0.1:8000/docs
-```
-
-OpenAPI Schema:
-
-```
-http://127.0.0.1:8000/openapi.json
-```
+Такое разделение делает проект более удобным для поддержки и тестирования.
 
 ---
 
@@ -90,25 +90,41 @@ http://127.0.0.1:8000/openapi.json
 
 | Поле | Тип | Обязательное |
 |------|-----|--------------|
-| title | string | ✅ |
-| description | string | ❌ |
-| country | string | ❌ |
-| city | string | ❌ |
+| disease | string | ✅ |
+| vaccine_name | string | ✅ |
+| clinic | string | ✅ |
+| country | string | ✅ |
+| city | string | ✅ |
+| notes | string | ❌ |
+
+---
+
+## База данных
+
+В качестве базы данных используется **SQLite**.
+
+Подключение осуществляется через асинхронный движок SQLAlchemy:
+
+- Async Engine
+- AsyncSession
+- Repository Pattern
+
+Таблицы автоматически создаются при запуске приложения.
 
 ---
 
 ## Планируемые улучшения
 
-- SQLite + SQLAlchemy
-- Реальная база данных вместо `fake_database`
-- PATCH для частичного обновления записи
-- Валидация данных
-- Автоматическое создание ID
+- Реализовать PATCH
+- Реализовать получение записи по ID из базы данных
+- Обновление и удаление записей через Repository
+- Валидация дат вакцинации
+- Добавить статус вакцинации (действует / истекла / требуется ревакцинация)
 - Логирование
-- Покрытие API тестами
-- Docker
-- CI/CD (GitHub Actions)
-
+- Docker Compose
+- GitHub Actions
+- Покрытие API автоматизированными тестами
+- Отчёты Allure
 ---
 
 ## Автор
@@ -116,6 +132,8 @@ http://127.0.0.1:8000/openapi.json
 Проект создан как pet-проект для изучения:
 
 - FastAPI
+- SQLAlchemy
 - REST API
-- Автоматизированного тестирования
+- Асинхронного программирования
+- Автоматизированного тестирования API
 - Python
