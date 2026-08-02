@@ -1,14 +1,14 @@
 from contextlib import asynccontextmanager
-from models.db_models import create_tables, delete_tables
+from models.db_models import create_database, delete_database
 from fastapi import FastAPI
 
 from routers import vaccines
 
 @asynccontextmanager
 async def lifespan_async(application: FastAPI):
-    await create_tables()
+    await create_database()
     yield
-    await delete_tables()
+    # await delete_database() Пока ничего удалять не будем
 
 app = FastAPI(
     title="API для отслеживания своих вакцинаций",
@@ -21,5 +21,5 @@ app = FastAPI(
 app.include_router(vaccines.router)
 
 @app.get("/")
-def read_root():
+async def read_root():
     return {"message": "Добро пожаловать в API"}

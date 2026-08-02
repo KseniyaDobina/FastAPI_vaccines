@@ -36,7 +36,7 @@ async def get_vaccine(vaccine_id: int):
     raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
 @router.post("")
-async def create_vaccine(vaccine: VaccineAdd = Depends()):
+async def create_vaccine(vaccine: VaccineAdd):
     """
     Создание записи о новой вакцинации
     :param vaccine: вакцина
