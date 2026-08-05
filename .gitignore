@@ -1,2 +1,3 @@
 config/.env
 app_vaccines/vaccines_db.sqlite3
+vaccines_db.sqlite3

@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
-from app_vaccines.models.database import create_database, delete_database
 from fastapi import FastAPI
 
+from app_vaccines.models.database import create_database, delete_database
 from app_vaccines.routers import vaccines
 
 @asynccontextmanager
