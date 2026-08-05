@@ -40,16 +40,13 @@ class VaccineRepository:
 class VaccineService:
     # делает commit ну должен
     @classmethod
-    async def update_vaccine(cls, vaccine_id:int, vaccine: VaccineCreate):
+    async def update_vaccine(cls, vaccine_id: int, vaccine: VaccineCreate):
         async with new_session() as session:
-            query = select(VaccineBase).where(VaccineBase.id == vaccine_id)
-            result = await session.execute(query)
-            vaccine_db = result.scalar_one_or_none()
-            if vaccine_db is None:
-                return False
             query = update(VaccineBase).where(VaccineBase.id == vaccine_id).values(**vaccine.model_dump())
-            result = await session.execute(query)
+            await session.execute(query)
             await session.commit()
-            await session.refresh(vaccine_db)
-            return vaccine_db
-
+            result = await session.execute(
+                select(VaccineBase).where(VaccineBase.id == vaccine_id)
+            )
+            updated_db_model = result.scalar_one_or_none()
+            return VaccineID.model_validate(updated_db_model)
