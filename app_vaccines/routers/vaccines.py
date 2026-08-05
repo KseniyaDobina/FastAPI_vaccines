@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 
 from app_vaccines.models.repository import VaccineRepository, VaccineService
 from app_vaccines.models.schemas import VaccineCreate, VaccineID
@@ -23,8 +23,8 @@ async def get_all_vaccines(pagination: dict = Depends(depends.pagination_paramet
             "limit": limit,
             "vaccines": vaccines}
 
-@router.post("")
-async def create_vaccine(vaccine: VaccineCreate = Depends()):
+@router.post("", status_code=status.HTTP_201_CREATED)
+async def create_vaccine(vaccine: VaccineCreate):
     """
     Создание записи о новой вакцинации
     """
