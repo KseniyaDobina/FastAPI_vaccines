@@ -1,0 +1,10 @@
+version: "0.0.1"
+
+services:
+  vaccines-api:
+    build: .
+    container_name: vaccines-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
