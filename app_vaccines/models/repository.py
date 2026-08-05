@@ -5,18 +5,6 @@ from models.database import new_session
 from models.db_models import VaccineBase
 
 class VaccineRepository:
-    # только работает с запросами ну должен
-    @classmethod
-    async def add_vaccines(cls, vaccine: VaccineCreate):
-        async with new_session() as session:
-            data = vaccine.model_dump()
-            new_vaccine = VaccineBase(**data)
-            session.add(new_vaccine)
-            await session.flush()
-            await session.commit()
-            await session.refresh(new_vaccine)
-            return new_vaccine
-
     @classmethod
     async def get_vaccines(cls) -> list[VaccineID]:
         async with new_session() as session:
@@ -38,7 +26,17 @@ class VaccineRepository:
 
 
 class VaccineService:
-    # делает commit ну должен
+    @classmethod
+    async def add_vaccines(cls, vaccine: VaccineCreate):
+        async with new_session() as session:
+            data = vaccine.model_dump()
+            new_vaccine = VaccineBase(**data)
+            session.add(new_vaccine)
+            await session.flush()
+            await session.commit()
+            await session.refresh(new_vaccine)
+            return new_vaccine
+
     @classmethod
     async def update_vaccine(cls, vaccine_id: int, vaccine: VaccineCreate):
         async with new_session() as session:
