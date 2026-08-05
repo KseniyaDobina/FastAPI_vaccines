@@ -14,8 +14,6 @@ router = APIRouter(
 async def get_all_vaccines(pagination: dict = Depends(depends.pagination_parameters)):
     """
     Получение списка всех вакцин
-    :param pagination: пагинация ограничивает количество вакцин
-    :return: список вакцин
     """
     skip = pagination["skip"]
     limit = pagination["limit"]
@@ -29,8 +27,6 @@ async def get_all_vaccines(pagination: dict = Depends(depends.pagination_paramet
 async def create_vaccine(vaccine: VaccineCreate = Depends()):
     """
     Создание записи о новой вакцинации
-    :param vaccine: вакцина
-    :return: 201 если создана, в других случаях ошибку
     """
     new_vaccine = await VaccineService.add_vaccine(vaccine)
     return {"message": f"Добавлена вакцина {new_vaccine.id}",
@@ -39,9 +35,7 @@ async def create_vaccine(vaccine: VaccineCreate = Depends()):
 @router.get("/{vaccine_id}")
 async def get_vaccine(vaccine_id: int):
     """
-    Поиск вакцины по id
-    :param vaccine_id: id вакцины в базе данных
-    :return: информацию о вакцине или ошибку 404
+    Поиск вакцинации по id
     """
     vaccine = await VaccineRepository.get_vaccine_by_id(vaccine_id)
     if vaccine is not None:
@@ -53,14 +47,11 @@ async def get_vaccine(vaccine_id: int):
 async def put_vaccine(vaccine_id: int, vaccine: VaccineCreate):
     """
     Обновление информации о вакцинации
-    :param vaccine_id: id вакцины
-    :return:
     """
-    vaccine_db = await VaccineRepository.get_vaccine_by_id(vaccine_id)
-    if vaccine_db is not None:
-        new_vaccine_db = await VaccineService.update_vaccine(vaccine_id, vaccine)
-        return {"message": f"Информация о вакцине №{vaccine_db.id} изменена",
-                "vaccine": new_vaccine_db}
+    new_vaccine_db = await VaccineService.update_vaccine(vaccine_id, vaccine)
+    if new_vaccine_db is not None:
+        return {"message": f"Информация о вакцине № изменена",
+                "vaccine": new_vaccine_db.id}
     raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
 @router.patch("/{vaccine_id}")
@@ -69,8 +60,8 @@ async def patch_vaccine(vaccine_id: int, vaccine: VaccineCreate):
 
 @router.delete("/{vaccine_id}")
 async def delete_vaccine(vaccine_id: int):
-    vaccine_db = await VaccineRepository.get_vaccine_by_id(vaccine_id)
-    if vaccine_db is not None:
-        await VaccineService.delete_vaccine(vaccine_id)
+    """Удаление записи о вакцинации"""
+    result = await VaccineService.delete_vaccine(vaccine_id)
+    if result:
         return {"message": f"Удалена вакцина №{vaccine_id}"}
     raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
