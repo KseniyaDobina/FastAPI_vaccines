@@ -70,10 +70,8 @@ async def patch_vaccine(vaccine_id: int, vaccine: VaccineCreate):
 
 @router.delete("/{vaccine_id}")
 async def delete_vaccine(vaccine_id: int):
-
-    for idx, vaccine in enumerate(fake_database):
-        if vaccine["id"] == vaccine_id:
-            del fake_database[idx]
-            return {"message": f"Удалена вакцина №{vaccine_id}"}
-
+    vaccine_db = await VaccineRepository.get_vaccine_by_id(vaccine_id)
+    if vaccine_db:
+        await VaccineService.delete_vaccine(vaccine_id)
+        return {"message": f"Удалена вакцина №{vaccine_id}"}
     raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
