@@ -1,8 +1,8 @@
 from sqlalchemy import select, update, delete
 
-from models.schemas import VaccineCreate, VaccineID
-from models.database import new_session
-from models.db_models import VaccineBase
+from app_vaccines.models.schemas import VaccineCreate, VaccineID
+from app_vaccines.models.database import new_session
+from app_vaccines.models.db_models import VaccineBase
 
 class VaccineRepository:
     """
@@ -24,7 +24,7 @@ class VaccineRepository:
             result = await session.execute(query)
             vaccine = result.scalar_one_or_none()
             if vaccine is None:
-                return False
+                return None
             return VaccineID.model_validate(vaccine)
 
 
@@ -33,7 +33,7 @@ class VaccineService:
     Класс для добавления, изменения или удаления вакцин
     """
     @classmethod
-    async def add_vaccines(cls, vaccine: VaccineCreate):
+    async def add_vaccine(cls, vaccine: VaccineCreate):
         async with new_session() as session:
             data = vaccine.model_dump()
             new_vaccine = VaccineBase(**data)
@@ -45,6 +45,7 @@ class VaccineService:
 
     @classmethod
     async def update_vaccine(cls, vaccine_id: int, vaccine: VaccineCreate):
+        # Надо проверить, что приходит из update если записи в бд с нужным id не существует
         async with new_session() as session:
             query = update(VaccineBase).where(VaccineBase.id == vaccine_id).values(**vaccine.model_dump())
             await session.execute(query)
@@ -57,6 +58,7 @@ class VaccineService:
 
     @classmethod
     async def delete_vaccine(cls, vaccine_id: int) -> bool:
+        # Надо проверить, что приходит из update если записи в бд с нужным id не существует
         async with new_session() as session:
             query = delete(VaccineBase).where(VaccineBase.id == vaccine_id)
             result = await session.execute(query)

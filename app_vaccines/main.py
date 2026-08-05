@@ -1,8 +1,8 @@
 from contextlib import asynccontextmanager
-from models.database import create_database, delete_database
+from app_vaccines.models.database import create_database, delete_database
 from fastapi import FastAPI
 
-from routers import vaccines
+from app_vaccines.routers import vaccines
 
 @asynccontextmanager
 async def lifespan_async(application: FastAPI):

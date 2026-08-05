@@ -1,2 +1,13 @@
-venv
-Dockerfile
+.venv/
+venv/
+
+.idea/
+.vscode/
+
+.git/
+.gitignore
+
+pytest_cache/
+.pytest_cache/
+
+vaccines_db.sqlite3
