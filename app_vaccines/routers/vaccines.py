@@ -57,27 +57,20 @@ async def put_vaccine(vaccine_id: int, vaccine: VaccineCreate):
     :param vaccine_id: id вакцины
     :return:
     """
-    vaccine_db = await VaccineService.update_vaccine(vaccine_id, vaccine)
+    vaccine_db = await VaccineRepository.get_vaccine_by_id(vaccine_id)
     if vaccine_db:
+        new_vaccine_db = await VaccineService.update_vaccine(vaccine_id, vaccine)
         return {"message": f"Информация о вакцине №{vaccine_db.id} изменена",
-                "vaccine": vaccine}
+                "vaccine": new_vaccine_db}
     raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
-    # for idx, vaccine_count in enumerate(fake_database):
-    #     if vaccine_count["id"] == vaccine_id:
-    #         updated_vaccine = vaccine.model_dump()
-    #         updated_vaccine["id"] = vaccine_id
-    #         fake_database[idx] = updated_vaccine
-    #         return {"message": f"Полностью заменены данные о вакцине №{vaccine_id}",
-    #                 "vaccine": updated_vaccine}
-    #
-    # raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
 @router.patch("/{vaccine_id}")
-async def patch_vaccine(vaccine_id: int):
+async def patch_vaccine(vaccine_id: int, vaccine: VaccineCreate):
     return {"message": f"Частично изменены данные о вакцине №{vaccine_id}"}
 
 @router.delete("/{vaccine_id}")
 async def delete_vaccine(vaccine_id: int):
+
     for idx, vaccine in enumerate(fake_database):
         if vaccine["id"] == vaccine_id:
             del fake_database[idx]
