@@ -45,20 +45,20 @@ class VaccineService:
 
     @classmethod
     async def update_vaccine(cls, vaccine_id: int, vaccine: VaccineCreate):
-        # Надо проверить, что приходит из update если записи в бд с нужным id не существует
         async with new_session() as session:
             query = update(VaccineBase).where(VaccineBase.id == vaccine_id).values(**vaccine.model_dump())
-            await session.execute(query)
+            result = await session.execute(query)
             await session.commit()
-            result = await session.execute(
-                select(VaccineBase).where(VaccineBase.id == vaccine_id)
-            )
-            updated_db_model = result.scalar_one_or_none()
-            return VaccineID.model_validate(updated_db_model)
+            if result.rowcount:
+                result = await session.execute(
+                    select(VaccineBase).where(VaccineBase.id == vaccine_id)
+                )
+                updated_db_model = result.scalar_one_or_none()
+                return VaccineID.model_validate(updated_db_model)
+            return None
 
     @classmethod
     async def delete_vaccine(cls, vaccine_id: int) -> bool:
-        # Надо проверить, что приходит из update если записи в бд с нужным id не существует
         async with new_session() as session:
             query = delete(VaccineBase).where(VaccineBase.id == vaccine_id)
             result = await session.execute(query)
