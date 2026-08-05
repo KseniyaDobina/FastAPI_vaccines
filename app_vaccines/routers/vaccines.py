@@ -33,7 +33,7 @@ async def create_vaccine(vaccine: VaccineCreate = Depends()):
     :param vaccine: вакцина
     :return: 201 если создана, в других случаях ошибку
     """
-    new_vaccine = await VaccineRepository.add_vaccines(vaccine)
+    new_vaccine = await VaccineService.add_vaccines(vaccine)
     return {"message": f"Добавлена вакцина {new_vaccine.id}",
             "vaccine": new_vaccine}
 
@@ -51,7 +51,7 @@ async def get_vaccine(vaccine_id: int):
     raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
 @router.put("/{vaccine_id}")
-async def put_vaccine(vaccine_id: int, vaccine: VaccineCreate):
+async def put_vaccine(vaccine_id: int, vaccine: VaccineCreate = Depends()):
     """
     Обновление информации о вакцинации
     :param vaccine_id: id вакцины
