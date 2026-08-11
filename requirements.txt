@@ -8,3 +8,4 @@ aiosqlite
 charset-normalizer
 pytest
 httpx2
+pytest_asyncio

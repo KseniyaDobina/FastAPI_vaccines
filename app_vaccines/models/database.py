@@ -7,9 +7,14 @@ PATH_TO_DB = "sqlite+aiosqlite:///data/vaccines_db.sqlite3"
 engine = create_async_engine(PATH_TO_DB)
 new_session = async_sessionmaker(engine, expire_on_commit=False)
 
+async def get_session():
+    async with new_session() as session:
+        yield session
+
 async def create_database():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
 async def delete_database():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
