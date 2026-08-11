@@ -2,7 +2,6 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app_vaccines.models.schemas import VaccineCreate, VaccineID
-from app_vaccines.models.database import new_session
 from app_vaccines.models.db_models import VaccineBase
 
 class VaccineRepository:
@@ -11,7 +10,6 @@ class VaccineRepository:
     """
     @classmethod
     async def get_vaccines(cls, session: AsyncSession) -> list[VaccineID]:
-        # async with new_session() as session:
         query = select(VaccineBase)
         result = await session.execute(query)
         vaccine_models = result.scalars().all()
@@ -20,7 +18,6 @@ class VaccineRepository:
 
     @classmethod
     async def get_vaccine_by_id(cls, vaccine_id: int, session: AsyncSession):
-        # async with new_session() as session:
         query = select(VaccineBase).where(VaccineBase.id == vaccine_id)
         result = await session.execute(query)
         vaccine = result.scalar_one_or_none()
@@ -35,7 +32,6 @@ class VaccineService:
     """
     @classmethod
     async def add_vaccine(cls, vaccine: VaccineCreate, session: AsyncSession):
-        # async with new_session() as session:
         data = vaccine.model_dump()
         new_vaccine = VaccineBase(**data)
         session.add(new_vaccine)
@@ -46,7 +42,6 @@ class VaccineService:
 
     @classmethod
     async def update_vaccine(cls, vaccine_id: int, vaccine: VaccineCreate, session: AsyncSession):
-        # async with new_session() as session:
         query = update(VaccineBase).where(VaccineBase.id == vaccine_id).values(**vaccine.model_dump())
         result = await session.execute(query)
         await session.commit()
@@ -60,7 +55,6 @@ class VaccineService:
 
     @classmethod
     async def delete_vaccine(cls, vaccine_id: int, session: AsyncSession) -> bool:
-        # async with new_session() as session:
         query = delete(VaccineBase).where(VaccineBase.id == vaccine_id)
         result = await session.execute(query)
         await session.commit()
