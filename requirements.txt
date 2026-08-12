@@ -1,7 +1,11 @@
 requests
 python-dotenv
-pytest
 fastapi
 uvicorn
 sqlalchemy
 aiosqlite
+
+charset-normalizer
+pytest
+httpx2
+pytest_asyncio
