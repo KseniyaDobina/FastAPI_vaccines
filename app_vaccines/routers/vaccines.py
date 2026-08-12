@@ -52,8 +52,8 @@ async def put_vaccine(vaccine_id: int, vaccine: VaccineCreate, session: AsyncSes
     """
     new_vaccine_db = await VaccineService.update_vaccine(vaccine_id, vaccine, session)
     if new_vaccine_db is not None:
-        return {"message": f"Информация о вакцине № изменена",
-                "vaccine": new_vaccine_db.id}
+        return {"message": f"Информация о вакцине изменена",
+                "vaccine": new_vaccine_db}
     raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
 @router.patch("/{vaccine_id}")

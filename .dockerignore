@@ -11,3 +11,4 @@ pytest_cache/
 .pytest_cache/
 
 data/vaccines_db.sqlite3
+test.db

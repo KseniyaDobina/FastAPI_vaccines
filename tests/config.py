@@ -18,6 +18,7 @@ TestingSessionLocal = async_sessionmaker(
 
 @pytest_asyncio.fixture(scope="function")
 async def test_db():
+    """Создание таблиц, сессия и удаление таблиц"""
     # создаём таблицы перед тестом
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

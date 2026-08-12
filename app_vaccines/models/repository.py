@@ -42,16 +42,22 @@ class VaccineService:
 
     @classmethod
     async def update_vaccine(cls, vaccine_id: int, vaccine: VaccineCreate, session: AsyncSession):
+        print("SESSION:", session)
+        print("DATABASE:", session.bind.url)
         query = update(VaccineBase).where(VaccineBase.id == vaccine_id).values(**vaccine.model_dump())
         result = await session.execute(query)
+        if result.rowcount == 0:
+            await session.rollback()
+            return None
+
         await session.commit()
-        if result.rowcount:
-            result = await session.execute(
-                select(VaccineBase).where(VaccineBase.id == vaccine_id)
-            )
-            updated_db_model = result.scalar_one_or_none()
-            return VaccineID.model_validate(updated_db_model)
-        return None
+        result = await session.execute(
+            select(VaccineBase).where(VaccineBase.id == vaccine_id)
+        )
+        updated_db_model = result.scalar_one_or_none()
+        if updated_db_model is None:
+            return None
+        return VaccineID.model_validate(updated_db_model)
 
     @classmethod
     async def delete_vaccine(cls, vaccine_id: int, session: AsyncSession) -> bool:
