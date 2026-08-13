@@ -24,6 +24,8 @@ REST API для ведения личного журнала вакцинаци�
 - Удаление записи
 - Асинхронная работа с SQLite
 - Запуск приложения через Docker
+- Частичное покрытие тестами
+- GitHub Actions
 
 ---
 
@@ -47,10 +49,14 @@ api_testing/
 │
 ├── app_vaccines/
 │   ├── models/
+│   │   ├── __init__.py
+│   │   ├── database.py
 │   │   ├── db_models.py
+│   │   ├── repository.py
 │   │   └── schemas.py
 │   │
 │   ├── routers/
+│   │   ├── __init__.py
 │   │   ├── depends.py
 │   │   ├── users.py
 │   │   └── vaccines.py
@@ -58,16 +64,26 @@ api_testing/
 │   ├── main.py
 │   └── vaccines_db.sqlite3
 │
+├── data/
+│   └── vaccines_db.sqlite3
+│
 ├── config/
 │   ├── .env
 │   └── settings.py
 │
 ├── tests/
-│   ├── auth_test.py
+│   ├── api_test.py
+│   ├── config.py
 │   └── test_api.py
 │
+├── .github/
+│   ├── workflows/
+│       └── tests.yml
+│
 ├── Dockerfile
-├──.dockerignore
+├── docker-compose.yml
+├── .dockerignore
+├── .gitignore
 ├── requirements.txt
 └── README.md
 ```
@@ -116,17 +132,39 @@ api_testing/
 
 ---
 
+## Тестирование
+
+Для API написаны асинхронные интеграционные тесты с использованием:
+
+- pytest
+- pytest-asyncio
+- httpx
+- тестовой SQLite БД
+
+Тесты проверяют:
+- GET
+- POST
+- PUT
+- DELETE
+- обработку 404
+- валидацию входных данных
+
+Тесты автоматически запускаются через GitHub Actions при push и pull request.
+
+---
+
 ## Планируемые улучшения
 
 - [x] CRUD операции
 - [x] SQLite
 - [x] Docker
+- [x] Частичное покрытие API тестами
+- [x] GitHub Actions
 - [ ] PATCH запрос
 - [ ] Поиск по названию заболевания
 - [ ] Авторизация пользователей
 - [ ] PostgreSQL
 - [ ] Alembic
-- [ ] GitHub Actions
 - [ ] Полное покрытие API тестами
 - [ ] Swagger Response Models
 ---

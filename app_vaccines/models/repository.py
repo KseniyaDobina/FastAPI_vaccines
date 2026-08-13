@@ -42,8 +42,6 @@ class VaccineService:
 
     @classmethod
     async def update_vaccine(cls, vaccine_id: int, vaccine: VaccineCreate, session: AsyncSession):
-        print("SESSION:", session)
-        print("DATABASE:", session.bind.url)
         query = update(VaccineBase).where(VaccineBase.id == vaccine_id).values(**vaccine.model_dump())
         result = await session.execute(query)
         if result.rowcount == 0:
