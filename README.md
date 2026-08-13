@@ -61,7 +61,8 @@ api_testing/
 │   │   ├── users.py
 │   │   └── vaccines.py
 │   │
-│   └── main.py
+│   ├── main.py
+│   └── vaccines_db.sqlite3
 │
 ├── data/
 │   └── vaccines_db.sqlite3
