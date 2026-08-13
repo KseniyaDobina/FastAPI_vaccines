@@ -2,7 +2,6 @@ import pytest
 from sqlalchemy import select
 
 from app_vaccines.models.db_models import VaccineBase
-from app_vaccines.models.database import get_session
 from tests.config import client, test_db
 
 @pytest.mark.asyncio
@@ -123,15 +122,13 @@ async def test_put_vaccine(client, test_db):
     response = await client.put(f"/vaccines/{vaccine_id}",json=new_data)
     assert response.status_code == 200
     data = response.json()
-    assert data["vaccine"]["id"] == 1
+    assert data["vaccine"]["id"] == vaccine_id
 
     # Проверяем, что данные действительно изменились в БД
     result = await test_db.execute(
         select(VaccineBase).where(VaccineBase.id == vaccine_id)
     )
     updated_vaccine = result.scalar_one()
-    print(response.json())
-    print(updated_vaccine.disease, 1)
 
     assert updated_vaccine.disease == "Грипп"
     assert updated_vaccine.vaccine_name == "Совигрипп"

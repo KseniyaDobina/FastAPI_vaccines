@@ -1,5 +1,5 @@
 import pytest_asyncio
-from httpx2 import AsyncClient, ASGITransport
+from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
 from app_vaccines.main import app
