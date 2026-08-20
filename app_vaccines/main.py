@@ -20,6 +20,6 @@ app = FastAPI(
 
 app.include_router(vaccines.router)
 
-# @app.get("/")
-# async def read_root():
-#     return {"message": "Добро пожаловать в API"}
+@app.get("/")
+async def read_root():
+    return {"message": "http://127.0.0.1:8000/docs"}

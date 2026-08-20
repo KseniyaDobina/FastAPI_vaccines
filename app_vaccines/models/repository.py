@@ -1,7 +1,7 @@
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app_vaccines.models.schemas import VaccineCreate, VaccineID
+from app_vaccines.models.schemas import VaccineCreate, VaccineID, VaccineUpdate
 from app_vaccines.models.db_models import VaccineBase
 
 class VaccineRepository:
@@ -56,6 +56,22 @@ class VaccineService:
         if updated_db_model is None:
             return None
         return VaccineID.model_validate(updated_db_model)
+
+    @classmethod
+    async def update_vaccine_patch(cls, vaccine_id: int, vaccine: VaccineUpdate, session: AsyncSession):
+        query = select(VaccineBase).where(VaccineBase.id == vaccine_id)
+        result = await session.execute(query)
+        vaccine_db = result.scalar_one_or_none()
+        if vaccine_db is None:
+            return None
+
+        update_data = vaccine.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(vaccine_db, field, value)
+
+        await session.commit()
+        await session.refresh(vaccine_db)
+        return VaccineID.model_validate(vaccine_db)
 
     @classmethod
     async def delete_vaccine(cls, vaccine_id: int, session: AsyncSession) -> bool:

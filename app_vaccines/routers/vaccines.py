@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app_vaccines.models.database import get_session
 from app_vaccines.models.repository import VaccineRepository, VaccineService
-from app_vaccines.models.schemas import VaccineCreate, VaccineID
+from app_vaccines.models.schemas import VaccineCreate, VaccineUpdate, VaccineID
 from app_vaccines.routers import depends
 
 router = APIRouter(
@@ -43,6 +43,7 @@ async def get_vaccine(vaccine_id: int, session: AsyncSession = Depends(get_sessi
     if vaccine is not None:
         return {"message": f"Информация о вакцине №{vaccine.id}",
                 "vaccine": vaccine}
+
     raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
 @router.put("/{vaccine_id}")
@@ -54,16 +55,25 @@ async def put_vaccine(vaccine_id: int, vaccine: VaccineCreate, session: AsyncSes
     if new_vaccine_db is not None:
         return {"message": f"Информация о вакцине изменена",
                 "vaccine": new_vaccine_db}
+
     raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
 @router.patch("/{vaccine_id}")
-async def patch_vaccine(vaccine_id: int, vaccine: VaccineCreate):
-    return {"message": f"Частично изменены данные о вакцине №{vaccine_id}"}
+async def patch_vaccine(vaccine_id: int, vaccine: VaccineUpdate, session: AsyncSession = Depends(get_session)):
+    updated_vaccine = await VaccineService.update_vaccine_patch(vaccine_id, vaccine, session)
+    if updated_vaccine is None:
+        raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
+
+    return {"message": f"Информация о вакцине №{updated_vaccine.id} изменена",
+            "vaccine": updated_vaccine}
 
 @router.delete("/{vaccine_id}")
 async def delete_vaccine(vaccine_id: int, session: AsyncSession = Depends(get_session)):
-    """Удаление записи о вакцинации"""
+    """
+    Удаление записи о вакцинации
+    """
     result = await VaccineService.delete_vaccine(vaccine_id, session)
     if result:
         return {"message": f"Удалена вакцина №{vaccine_id}"}
+
     raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
