@@ -3,20 +3,7 @@ from sqlalchemy import select
 
 from app_vaccines.models.db_models import VaccineBase
 from tests.config import client, test_db
-
-@pytest.fixture
-def vaccine_test_data():
-    return {
-        "disease": "COVID-19",
-        "vaccine_name": "Sputnik V",
-        "clinic": "Поликлиника №1",
-        "country": "Россия",
-        "city": "Москва",
-    }
-
-@pytest.fixture
-def vaccine_test(vaccine_test_data):
-    return VaccineBase(**vaccine_test_data)
+from tests.conftest import vaccine_test_data, vaccine_test, vaccine_in_db
 
 # @pytest.fixture
 # async def vaccine_test_db(session, vaccine_test):
@@ -68,16 +55,13 @@ async def test_post_create_vaccine(client, vaccine_test_data):
     assert response.status_code == 201
 
 @pytest.mark.asyncio
-async def test_get_vaccine(client, vaccine_test, test_db):
+async def test_get_vaccine(client, vaccine_in_db):
     """
     Получение существующей вакцинации по ID
     """
 
-    test_db.add(vaccine_test)
-    await test_db.commit()
-    await test_db.refresh(vaccine_test)
     response = await client.get(
-        f"/vaccines/{vaccine_test.id}"
+        f"/vaccines/{vaccine_in_db.id}"
     )
 
     assert response.status_code == 200
@@ -85,8 +69,8 @@ async def test_get_vaccine(client, vaccine_test, test_db):
 
     assert "message" in data
     assert "vaccine" in data
-    assert data["message"] == f"Информация о вакцине №{vaccine_test.id}"
-    assert data["vaccine"]["id"] == vaccine_test.id
+    assert data["message"] == f"Информация о вакцине №{vaccine_in_db.id}"
+    assert data["vaccine"]["id"] == vaccine_in_db.id
     assert data["vaccine"]["disease"] == "COVID-19"
     assert data["vaccine"]["vaccine_name"] == "Sputnik V"
 
@@ -102,16 +86,12 @@ async def test_get_vaccine_not_found(client):
     assert response.json()["detail"] == "Данные о вакцинации не найдены"
 
 @pytest.mark.asyncio
-async def test_put_vaccine(client, vaccine_test, test_db):
+async def test_put_vaccine(client, vaccine_in_db, test_db):
     """
     Обновление существующей вакцинации
     """
 
-    test_db.add(vaccine_test)
-
-    await test_db.commit()
-    await test_db.refresh(vaccine_test)
-    vaccine_id = vaccine_test.id
+    vaccine_id = vaccine_in_db.id
 
     # Новые данные
     new_data = {
@@ -161,17 +141,13 @@ async def test_put_vaccine_not_found(client):
     assert response.json()["detail"] == "Данные о вакцинации не найдены"
 
 @pytest.mark.asyncio
-async def test_patch_vaccine(client, vaccine_test, test_db):
+async def test_patch_vaccine(client, vaccine_in_db, test_db):
     """
         Частичное обновление существующей вакцинации.
-
         Проверяем, что изменилось только переданное поле.
         """
 
-    test_db.add(vaccine_test)
-    await test_db.commit()
-    await test_db.refresh(vaccine_test)
-    response = await client.patch(f"/vaccines/{vaccine_test.id}", json={"city": "Espoo"})
+    response = await client.patch(f"/vaccines/{vaccine_in_db.id}", json={"city": "Espoo"})
 
     assert response.status_code == 200
     data = response.json()
@@ -179,34 +155,31 @@ async def test_patch_vaccine(client, vaccine_test, test_db):
     assert "message" in data
     assert "vaccine" in data
     assert data["vaccine"]["city"] == "Espoo"
-    assert data["vaccine"]["disease"] == vaccine_test.disease
-    assert data["vaccine"]["vaccine_name"] == vaccine_test.vaccine_name
-    assert data["vaccine"]["clinic"] == vaccine_test.clinic
-    assert data["vaccine"]["country"] == vaccine_test.country
+    assert data["vaccine"]["disease"] == vaccine_in_db.disease
+    assert data["vaccine"]["vaccine_name"] == vaccine_in_db.vaccine_name
+    assert data["vaccine"]["clinic"] == vaccine_in_db.clinic
+    assert data["vaccine"]["country"] == vaccine_in_db.country
     # Проверяем БД.
     result = await test_db.execute(
         select(VaccineBase).where(
-            VaccineBase.id == vaccine_test.id
+            VaccineBase.id == vaccine_in_db.id
         )
     )
     updated_vaccine = result.scalar_one()
 
     assert updated_vaccine.city == "Espoo"
-    assert updated_vaccine.disease == vaccine_test.disease
-    assert updated_vaccine.vaccine_name == vaccine_test.vaccine_name
-    assert updated_vaccine.clinic == vaccine_test.clinic
-    assert updated_vaccine.country == vaccine_test.country
+    assert updated_vaccine.disease == vaccine_in_db.disease
+    assert updated_vaccine.vaccine_name == vaccine_in_db.vaccine_name
+    assert updated_vaccine.clinic == vaccine_in_db.clinic
+    assert updated_vaccine.country == vaccine_in_db.country
 
 @pytest.mark.asyncio
-async def test_patch_vaccine_multiple_fields(client, vaccine_test, test_db):
+async def test_patch_vaccine_multiple_fields(client, vaccine_in_db):
     """
     Проверяем частичное обновление нескольких полей.
     """
 
-    test_db.add(vaccine_test)
-    await test_db.commit()
-    await test_db.refresh(vaccine_test)
-    vaccine_id = vaccine_test.id
+    vaccine_id = vaccine_in_db.id
     response = await client.patch(
         f"/vaccines/{vaccine_id}",
         json={
@@ -222,9 +195,9 @@ async def test_patch_vaccine_multiple_fields(client, vaccine_test, test_db):
     assert data["vaccine"]["city"] == "Espoo"
     assert data["vaccine"]["clinic"] == "New Clinic"
     # Остальные поля не должны измениться.
-    assert data["vaccine"]["disease"] == vaccine_test.disease
-    assert data["vaccine"]["vaccine_name"] == vaccine_test.vaccine_name
-    assert data["vaccine"]["country"] == vaccine_test.country
+    assert data["vaccine"]["disease"] == vaccine_in_db.disease
+    assert data["vaccine"]["vaccine_name"] == vaccine_in_db.vaccine_name
+    assert data["vaccine"]["country"] == vaccine_in_db.country
 
 @pytest.mark.asyncio
 async def test_patch_vaccine_not_found(client):
@@ -239,15 +212,12 @@ async def test_patch_vaccine_not_found(client):
     assert response.json()["detail"] == "Данные о вакцинации не найдены"
 
 @pytest.mark.asyncio
-async def test_delete_vaccine(client, vaccine_test, test_db):
+async def test_delete_vaccine(client, vaccine_in_db, test_db):
     """
     Удаление существующей вакцинации
     """
 
-    test_db.add(vaccine_test)
-    await test_db.commit()
-    await test_db.refresh(vaccine_test)
-    vaccine_id = vaccine_test.id
+    vaccine_id = vaccine_in_db.id
     response = await client.delete(f"/vaccines/{vaccine_id}")
 
     assert response.status_code == 200
