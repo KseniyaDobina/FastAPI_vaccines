@@ -1,6 +1,5 @@
 from pydantic import BaseModel, ConfigDict
 
-
 class VaccineCreate(BaseModel):
     disease: str
     vaccine_name: str
@@ -24,3 +23,14 @@ class VaccineUpdate(BaseModel):
     country: str | None = None
     city: str | None = None
     notes: str | None = None
+
+class VaccineAPIResponse(BaseModel):
+    message: str
+    vaccine: VaccineID
+
+class ListVaccineUpdateAPIResponse(BaseModel):
+    message: str
+    vaccines: list[VaccineID]
+
+class MessageAPIResponse(BaseModel):
+    message: str
