@@ -65,7 +65,7 @@ api_testing/
 │   └── main.py
 │
 ├── config/
-│   ├── .env
+│   ├── .env.example
 │   └── settings.py
 │
 ├── tests/
@@ -142,6 +142,7 @@ api_testing/
 - GET
 - POST
 - PUT
+- PATCH
 - DELETE
 - обработку 404
 - валидацию входных данных
