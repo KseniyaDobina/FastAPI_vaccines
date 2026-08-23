@@ -38,7 +38,8 @@ REST API для ведения личного журнала вакцинаци�
 - Pydantic v2
 - Uvicorn
 - Docker
-- Pytest *(API тесты находятся в разработке)*
+- Pytest
+- GitHub Actions 
 
 ---
 
@@ -61,14 +62,10 @@ api_testing/
 │   │   ├── users.py
 │   │   └── vaccines.py
 │   │
-│   ├── main.py
-│   └── vaccines_db.sqlite3
-│
-├── data/
-│   └── vaccines_db.sqlite3
+│   └── main.py
 │
 ├── config/
-│   ├── .env
+│   ├── .env.example
 │   └── settings.py
 │
 ├── tests/
@@ -77,7 +74,7 @@ api_testing/
 │   └── test_api.py
 │
 ├── .github/
-│   ├── workflows/
+│   └── workflows/
 │       └── tests.yml
 │
 ├── Dockerfile
@@ -145,6 +142,7 @@ api_testing/
 - GET
 - POST
 - PUT
+- PATCH
 - DELETE
 - обработку 404
 - валидацию входных данных
@@ -160,7 +158,7 @@ api_testing/
 - [x] Docker
 - [x] Частичное покрытие API тестами
 - [x] GitHub Actions
-- [ ] PATCH запрос
+- [x] PATCH запрос
 - [ ] Поиск по названию заболевания
 - [ ] Авторизация пользователей
 - [ ] PostgreSQL
