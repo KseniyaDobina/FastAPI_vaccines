@@ -1,4 +1,4 @@
-config/.env
+app_vaccines/config/.env
 data/vaccines_db.sqlite3
 test.db
 .coverage

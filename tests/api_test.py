@@ -3,7 +3,8 @@ from sqlalchemy import select
 
 from app_vaccines.models.db_models import VaccineBase
 from tests.config import client, test_db
-from tests.conftest import vaccine_test_data, vaccine_test, vaccine_in_db
+from tests.conftest import (
+    vaccine_test_data, vaccine_in_db, vaccine_test_new_data, vaccine_test_json_data, vaccine_in_db_json)
 
 # @pytest.fixture
 # async def vaccine_test_db(session, vaccine_test):
@@ -38,14 +39,14 @@ async def test_post_without_data(client):
     assert response.status_code == 422
 
 @pytest.mark.asyncio
-async def test_post_create_vaccine(client, vaccine_test_data):
+async def test_post_create_vaccine(client, vaccine_test_json_data):
     """
     Проверка создания записи о вакцинации
     """
 
     response = await client.post(
         "/vaccines",
-        json=vaccine_test_data,
+        json=vaccine_test_json_data,
     )
     data = response.json()
 
@@ -69,10 +70,20 @@ async def test_get_vaccine(client, vaccine_in_db):
 
     assert "message" in data
     assert "vaccine" in data
-    assert data["message"] == f"Информация о вакцине №{vaccine_in_db.id}"
-    assert data["vaccine"]["id"] == vaccine_in_db.id
-    assert data["vaccine"]["disease"] == "COVID-19"
-    assert data["vaccine"]["vaccine_name"] == "Sputnik V"
+    vaccine = data["vaccine"]
+
+    assert vaccine["id"] == vaccine_in_db.id
+    assert vaccine["disease"] == "COVID-19"
+    assert vaccine["vaccine_name"] == "Comirnaty"
+    assert vaccine["dose_number"] == "1"
+    assert vaccine["vaccination_date"] == "2026-08-20"
+    assert vaccine["expiration_date"] == "2027-01-31"
+    assert vaccine["type_vaccine"] == "mRNA"
+    assert vaccine["lot"] == "ABC12345"
+    assert vaccine["manufacturer"] == "Pfizer-BioNTech"
+    assert vaccine["clinic"] == "City Medical Center"
+    assert vaccine["country"] == "Germany"
+    assert vaccine["city"] == "Frankfurt am Main"
 
 @pytest.mark.asyncio
 async def test_get_vaccine_not_found(client):
@@ -86,23 +97,13 @@ async def test_get_vaccine_not_found(client):
     assert response.json()["detail"] == "Данные о вакцинации не найдены"
 
 @pytest.mark.asyncio
-async def test_put_vaccine(client, vaccine_in_db, test_db):
+async def test_put_vaccine(client, vaccine_in_db, test_db, vaccine_test_new_data):
     """
     Обновление существующей вакцинации
     """
 
     vaccine_id = vaccine_in_db.id
-
-    # Новые данные
-    new_data = {
-        "disease": "Грипп",
-        "vaccine_name": "Совигрипп",
-        "clinic": "Поликлиника №2",
-        "country": "Россия",
-        "city": "Москва",
-    }
-
-    response = await client.put(f"/vaccines/{vaccine_id}",json=new_data)
+    response = await client.put(f"/vaccines/{vaccine_id}",json=vaccine_test_new_data)
 
     assert response.status_code == 200
     data = response.json()
@@ -117,25 +118,24 @@ async def test_put_vaccine(client, vaccine_in_db, test_db):
     updated_vaccine = result.scalar_one()
 
     assert updated_vaccine.disease == "Грипп"
-    assert updated_vaccine.vaccine_name == "Совигрипп"
-    assert updated_vaccine.clinic == "Поликлиника №2"
-    assert updated_vaccine.country == "Россия"
-    assert updated_vaccine.city == "Москва"
+    assert updated_vaccine.vaccine_name == "Vaxigrip Tetra"
+    assert updated_vaccine.dose_number == "1"
+    assert updated_vaccine.vaccination_date.isoformat() == "2026-09-15"
+    assert updated_vaccine.expiration_date.isoformat() == "2027-06-30"
+    assert updated_vaccine.type_vaccine == "Инактивированная, квадривалентная"
+    assert updated_vaccine.lot == "VXT2026A91"
+    assert updated_vaccine.manufacturer == "Sanofi"
+    assert updated_vaccine.clinic == "Frankfurt Medical Center"
+    assert updated_vaccine.country == "Germany"
+    assert updated_vaccine.city == "Frankfurt am Main"
 
 @pytest.mark.asyncio
-async def test_put_vaccine_not_found(client):
+async def test_put_vaccine_not_found(client, vaccine_test_new_data):
     """
     Обновление вакцинации, которой не существует
     """
 
-    new_data = {
-        "disease": "Грипп",
-        "vaccine_name": "Совигрипп",
-        "clinic": "Поликлиника №2",
-        "country": "Россия",
-        "city": "Москва",
-    }
-    response = await client.put("/vaccines/999999", json=new_data)
+    response = await client.put("/vaccines/999999", json=vaccine_test_new_data)
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Данные о вакцинации не найдены"
@@ -144,7 +144,7 @@ async def test_put_vaccine_not_found(client):
 async def test_patch_vaccine(client, vaccine_in_db, test_db):
     """
         Частичное обновление существующей вакцинации.
-        Проверяем, что изменилось только переданное поле.
+        Проверка, что изменилось только переданное поле.
         """
 
     response = await client.patch(f"/vaccines/{vaccine_in_db.id}", json={"city": "Espoo"})

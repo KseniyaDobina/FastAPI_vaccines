@@ -28,12 +28,12 @@ class VaccineUpdate(BaseModel):
     # date_change_note: date
     disease: str | None = Field(default=None, min_length=3, max_length=100)
     vaccine_name: str | None = Field(default=None, min_length=3, max_length=100)
-    dose_number: str = Field(min_length=1, max_length=30)
-    vaccination_date: date
+    dose_number: str | None = Field(default=None, min_length=1, max_length=30)
+    vaccination_date: date | None = None
     expiration_date: date | None = None
-    type_vaccine: str = Field(min_length=1, max_length=100)
-    lot: str = Field(min_length=1, max_length=100)
-    manufacturer: str = Field(min_length=2, max_length=100)
+    type_vaccine: str | None = Field(default=None, min_length=1, max_length=100)
+    lot: str | None = Field(default=None, min_length=1, max_length=100)
+    manufacturer: str | None = Field(default=None, min_length=2, max_length=100)
     clinic: str | None = Field(default=None, min_length=3, max_length=200)
     country: str | None = Field(default=None, min_length=2, max_length=100)
     city: str | None = Field(default=None, min_length=2, max_length=100)
