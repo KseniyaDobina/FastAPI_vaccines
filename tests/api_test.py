@@ -81,6 +81,23 @@ async def test_post_create_vaccine_without_notes(client, vaccine_test_json_data)
     assert data["vaccine"]["notes"] is None
 
 @pytest.mark.asyncio
+async def test_post_create_vaccine_without_expiration_date(client,vaccine_test_json_data,):
+    """
+    Проверка создание вакцинации без expiration_date
+    """
+
+    vaccine_test_json_data["expiration_date"] = None
+    response = await client.post(
+        "/vaccines",
+        json=vaccine_test_json_data,
+    )
+
+    assert response.status_code == 201
+
+    data = response.json()
+    assert data["vaccine"]["expiration_date"] is None
+
+@pytest.mark.asyncio
 async def test_get_vaccine(client, vaccine_in_db):
     """
     Получение существующей вакцинации по ID
@@ -217,7 +234,7 @@ async def test_patch_vaccine(client, vaccine_in_db, test_db):
 @pytest.mark.asyncio
 async def test_patch_vaccine_multiple_fields(client, vaccine_in_db):
     """
-    Проверяем частичное обновление нескольких полей.
+    Проверка частичное обновление нескольких полей.
     """
 
     vaccine_id = vaccine_in_db.id
