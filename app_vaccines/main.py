@@ -2,13 +2,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app_vaccines.models.database import create_database, delete_database
-from app_vaccines.routers import vaccines
+from app_vaccines.routers import vaccines, users
 
 @asynccontextmanager
 async def lifespan_async(application: FastAPI):
     await create_database()
     yield
-    # await delete_database() Пока ничего удалять не будем
+    # await delete_database() Пока ничего не удаляем
 
 app = FastAPI(
     title="API для отслеживания своих вакцинаций",
@@ -19,7 +19,4 @@ app = FastAPI(
 )
 
 app.include_router(vaccines.router)
-
-@app.get("/")
-async def read_root():
-    return {"message": "http://127.0.0.1:8000/docs"}
+app.include_router(users.router)

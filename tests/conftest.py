@@ -22,3 +22,14 @@ async def vaccine_in_db(test_db, vaccine_test):
     await test_db.commit()
     await test_db.refresh(vaccine_test)
     return vaccine_test
+
+# Для тестов с фэйковым пользователем
+# app.dependency_overrides[get_current_user] = fake_user
+# def fake_user():
+#     return {
+#         "sub": "test-user-id",
+#         "preferred_username": "test-user",
+#         "realm_access": {
+#             "roles": ["user"]
+#         }
+#     }

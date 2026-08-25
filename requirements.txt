@@ -1,11 +1,13 @@
-requests
+aiosqlite
+cryptography
 python-dotenv
 fastapi
 uvicorn
+PyJWT
+requests
 sqlalchemy
-aiosqlite
 
 charset-normalizer
-pytest
 httpx
+pytest
 pytest_asyncio
