@@ -1,6 +1,6 @@
 # 💉 Vaccines API
 
-REST API для ведения личного журнала вакцинации.
+> REST API для ведения личного журнала вакцинации.
 
 Во многих медицинских учреждениях информация о ранее сделанных прививках хранится в разных системах или вовсе теряется при смене поликлиники. Цель проекта — создать простой REST API для хранения собственной истории вакцинации.
 
@@ -12,43 +12,76 @@ REST API для ведения личного журнала вакцинаци�
 
 ---
 
-## Возможности
+## ✨ Возможности
 
-На данный момент реализованы следующие операции:
+### Vaccinations
 
-- Получение списка всех вакцинаций
-- Получение информации о вакцинации по ID
-- Добавление новой записи
-- Полное обновление информации о вакцинации
-- Частичное обновление записи *(в разработке)*
-- Удаление записи
-- Асинхронная работа с SQLite
-- Запуск приложения через Docker
-- Частичное покрытие тестами
-- GitHub Actions
+* Получение списка вакцинаций `GET`
+* Получение вакцинации по `id`
+* Создание записи о вакцинации `POST`
+* Полное обновление записи через `PUT`
+* Частичное обновление через `PATCH`
+* Удаление записи `DELETE`
+* Валидация входных данных через Pydantic
+* Обработка ошибок `404 Not Found`
+
+### Authentication
+
+* Работа с авторизацией пользователя
+* Получение текущего пользователя через защищённый endpoint
+* JWT / Keycloak integration
+
+### Development & QA
+
+* Асинхронная работа с SQLite
+* SQLAlchemy 2.x
+* Repository / Service layer
+* Docker
+* Автоматизированные API-тесты
+* GitHub Actions CI
+* Swagger / OpenAPI documentation
+
 
 ---
 
-## Стек технологий
+## 🛠 Стек технологий
 
-- Python 3.13
-- FastAPI
-- SQLAlchemy 2.0 (Async)
-- SQLite
-- Pydantic v2
-- Uvicorn
-- Docker
-- Pytest
-- GitHub Actions 
+| Technology     | Purpose                   |
+| -------------- | ------------------------- |
+| Python 3.13    | Основной язык             |
+| FastAPI        | REST API                  |
+| Pydantic       | Валидация и схемы данных  |
+| SQLAlchemy 2.x | ORM                       |
+| SQLite         | База данных               |
+| aiosqlite      | Асинхронный SQLite driver |
+| Uvicorn        | ASGI server               |
+| PyJWT          | Работа с JWT              |
+| HTTPX          | HTTP-клиент для тестов    |
+| Pytest         | Тестирование              |
+| pytest-asyncio | Асинхронное тестирование  |
+| Docker         | Контейнеризация           |
+| GitHub Actions | CI                        |
 
 ---
 
 ## Структура проекта
 
+Проект построен с разделением ответственности между слоями:
+
 ```text
-api_testing/
+FastAPI_vaccines/
 │
 ├── app_vaccines/
+│   ├── auth/
+│   │   ├── __init__.py
+│   │   ├── dependencies.py
+│   │   └── keycloak.py
+│   │
+│   ├── config/
+│   │   ├── __init__.py
+│   │   ├── .env.example
+│   │   └── settings.py
+│   │
 │   ├── models/
 │   │   ├── __init__.py
 │   │   ├── database.py
@@ -63,10 +96,6 @@ api_testing/
 │   │   └── vaccines.py
 │   │
 │   └── main.py
-│
-├── config/
-│   ├── .env.example
-│   └── settings.py
 │
 ├── tests/
 │   ├── api_test.py
@@ -84,95 +113,177 @@ api_testing/
 ├── requirements.txt
 └── README.md
 ```
-
 ---
 
 ## Архитектура приложения
 
 Проект построен с разделением ответственности:
 
-- **routers** — обработка HTTP-запросов;
-- **schemas** — модели Pydantic для валидации данных;
-- **db_models** — ORM-модели SQLAlchemy и работа с базой данных через Repository;
-- **depends** — зависимости FastAPI (например, пагинация).
+**`routers`**
 
-Такое разделение делает проект более удобным для поддержки и тестирования.
+HTTP endpoints и обработка запросов FastAPI.
+
+**`schemas`**
+
+Pydantic-модели для валидации входных и выходных данных.
+
+**`db_models`**
+
+SQLAlchemy ORM-модели базы данных.
+
+**`repository`**
+
+Работа с данными и операции над сущностями.
+
+**`service`**
+
+Бизнес-логика приложения.
+
+**`auth`**
+
+Компоненты авторизации и получения текущего пользователя.
+
+**`database`**
+
+Создание async engine и работа с `AsyncSession`.
 
 ---
 
 ## Модель данных
 
-На текущем этапе запись о вакцинации содержит следующие поля:
+Модель вакцинации содержит информацию о заболевании, вакцине, дозе, датах вакцинации, производителе и месте проведения вакцинации.
 
-| Поле | Тип | Обязательное |
-|------|-----|--------------|
-| disease | string | ✅ |
-| vaccine_name | string | ✅ |
-| clinic | string | ✅ |
-| country | string | ✅ |
-| city | string | ✅ |
-| notes | string | ❌ |
+### Fields
+
+| Field              | Type      | Required | Description                             |
+| ------------------ | --------- | :------: | --------------------------------------- |
+| `id`               | `integer` |     —    | Уникальный идентификатор записи         |
+| `disease`          | `string`  |     ✅    | Заболевание                             |
+| `vaccine_name`     | `string`  |     ✅    | Название вакцины                        |
+| `dose_number`      | `string`  |     ✅    | Номер дозы                              |
+| `vaccination_date` | `date`    |     ✅    | Дата вакцинации                         |
+| `expiration_date`  | `date`    |     ❌    | Дата окончания действия / срок годности |
+| `type_vaccine`     | `string`  |     ✅    | Тип вакцины                             |
+| `lot`              | `string`  |     ✅    | Номер партии                            |
+| `manufacturer`     | `string`  |     ✅    | Производитель                           |
+| `clinic`           | `string`  |     ✅    | Медицинская организация / клиника       |
+| `country`          | `string`  |     ✅    | Страна                                  |
+| `city`             | `string`  |     ✅    | Город                                   |
+| `notes`            | `string`  |     ❌    | Дополнительные заметки                  |
+
+---
+
+## 🔌 API Endpoints
+
+### Vaccinations
+
+| Method   | Endpoint                 | Description                   |
+| -------- | ------------------------ | ----------------------------- |
+| `GET`    | `/vaccines`              | Получить список вакцинаций    |
+| `GET`    | `/vaccines/{vaccine_id}` | Получить вакцинацию по ID     |
+| `POST`   | `/vaccines`              | Создать вакцинацию            |
+| `PUT`    | `/vaccines/{vaccine_id}` | Полностью обновить вакцинацию |
+| `PATCH`  | `/vaccines/{vaccine_id}` | Частично обновить вакцинацию  |
+| `DELETE` | `/vaccines/{vaccine_id}` | Удалить вакцинацию            |
+
+### Users
+
+| Method | Endpoint      | Description                           |
+| ------ | ------------- | ------------------------------------- |
+| `GET`  | `/users/user` | Получить данные текущего пользователя |
 
 ---
 
 ## База данных
 
-В качестве базы данных используется **SQLite**.
+В текущей версии используется **SQLite**.
 
-Подключение осуществляется через асинхронный движок SQLAlchemy:
+Работа с базой данных построена на:
 
-- Async Engine
-- AsyncSession
-- Repository Pattern
+* SQLAlchemy Async Engine
+* `AsyncSession`
+* `aiosqlite`
+* SQLAlchemy ORM
+* Repository pattern
 
-Таблицы автоматически создаются при запуске приложения.
+Основная ORM-модель вакцинации определена в `VaccineBase`. Она содержит `id` и 13 полей данных вакцинации.
+
 
 ---
 
 ## Тестирование
 
-Для API написаны асинхронные интеграционные тесты с использованием:
+🧪 Testing
 
-- pytest
-- pytest-asyncio
-- httpx
-- тестовой SQLite БД
+Для запуска тестов: `pytest`
 
-Тесты проверяют:
-- GET
-- POST
-- PUT
-- PATCH
-- DELETE
-- обработку 404
-- валидацию входных данных
+Тесты используют:
 
-Тесты автоматически запускаются через GitHub Actions при push и pull request.
+* pytest
+* pytest-asyncio
+* httpx
+* тестовую SQLite database
+
+Тестовые сценарии разделены по CRUD-операциям:
+
+```text
+tests/
+├── test_vaccines_create.py
+├── test_vaccines_read.py
+├── test_vaccines_update.py
+└── test_vaccines_delete.py
+```
+
+Проверяются основные позитивные и негативные сценарии API, включая обработку отсутствующих ресурсов и валидацию данных.
 
 ---
 
 ## Планируемые улучшения
 
-- [x] CRUD операции
-- [x] SQLite
-- [x] Docker
-- [x] Частичное покрытие API тестами
-- [x] GitHub Actions
-- [x] PATCH запрос
-- [ ] Поиск по названию заболевания
-- [ ] Авторизация пользователей
-- [ ] PostgreSQL
-- [ ] Alembic
-- [ ] Полное покрытие API тестами
-- [ ] Swagger Response Models
+* [x] CRUD operations
+* [x] Async SQLite
+* [x] SQLAlchemy Repository / Service layer
+* [x] PATCH endpoint
+* [x] Docker
+* [x] Automated API tests
+* [x] GitHub Actions
+* [x] Authentication foundation
+* [ ] Полноценная авторизация пользователей
+* [ ] Привязка вакцинаций к пользователю
+* [ ] PostgreSQL
+* [ ] Alembic migrations
+* [ ] Полноценная пагинация
+* [ ] Поиск по заболеванию
+* [ ] Фильтрация и сортировка
+* [ ] Расширение negative API tests
+* [ ] Увеличение test coverage
+* [ ] Улучшение OpenAPI response examples
+* [ ] Production-ready configuration
 ---
 
-## Автор
+## 🎯 Project Goals
 
-Проект создан как pet-проект для изучения:
+Проект создан как pet-проект для практики:
 
-- разработки REST API на FastAPI;
-- асинхронной работы с SQLAlchemy;
-- контейнеризации приложения с Docker;
-- написания автоматизированных API-тестов;
-- оформления проектов для портфолио QA Automation.
+* разработки REST API на FastAPI;
+* асинхронного программирования на Python;
+* работы с SQLAlchemy 2.x;
+* проектирования Repository / Service layer;
+* API testing;
+* pytest и async testing;
+* Docker;
+* CI/CD;
+* JWT-based authentication;
+* подготовки backend-проекта для QA Automation portfolio.
+
+---
+
+## 👩‍💻 Author
+
+**Kseniya Dobina**
+
+---
+
+## 📄 License
+
+Проект создан в учебных целях.
