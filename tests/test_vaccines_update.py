@@ -20,6 +20,19 @@ async def test_put_vaccine(client, vaccine_in_db, test_db, vaccine_test_new_data
     assert "message" in data
     assert "vaccine" in data
     assert data["vaccine"]["id"] == vaccine_id
+    assert data["vaccine"]["disease"] == "Грипп"
+    assert data["vaccine"]["vaccine_name"] == "Vaxigrip Tetra"
+    assert data["vaccine"]["dose_number"] == "1"
+    assert data["vaccine"]["vaccination_date"] == "2026-09-15"
+    assert data["vaccine"]["expiration_date"] == "2027-06-30"
+    assert data["vaccine"]["type_vaccine"] == "Инактивированная, квадривалентная"
+    assert data["vaccine"]["lot"] == "VXT2026A91"
+    assert data["vaccine"]["manufacturer"] == "Sanofi"
+    assert data["vaccine"]["clinic"] == "Frankfurt Medical Center"
+    assert data["vaccine"]["country"] == "Germany"
+    assert data["vaccine"]["city"] == "Frankfurt am Main"
+    assert data["vaccine"]["notes"] == "Сезонная вакцинация против гриппа"
+
     # Проверяем, что данные действительно изменились в БД
     result = await test_db.execute(
         select(VaccineBase).where(VaccineBase.id == vaccine_id)
