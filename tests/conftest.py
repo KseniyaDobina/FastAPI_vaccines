@@ -17,7 +17,7 @@ async def vaccine_test_data():
         "clinic": "City Medical Center",
         "country": "Germany",
         "city": "Frankfurt am Main",
-        # "notes": "Вакцинация проведена без осложнений"
+        "notes": "Вакцинация проведена без осложнений"
     }
 
 @pytest_asyncio.fixture
@@ -40,17 +40,6 @@ async def vaccine_test_json_data(vaccine_test_data):
     }
 
 @pytest_asyncio.fixture
-async def vaccine_test_json(vaccine_test_json_data):
-    return VaccineBase(**vaccine_test_json_data)
-
-@pytest_asyncio.fixture
-async def vaccine_in_db_json(test_db, vaccine_test_json):
-    test_db.add(vaccine_test_json)
-    await test_db.commit()
-    await test_db.refresh(vaccine_test_json)
-    return vaccine_test
-
-@pytest_asyncio.fixture
 async def vaccine_test_new_data():
     return {
         "disease": "Грипп",
@@ -64,7 +53,7 @@ async def vaccine_test_new_data():
         "clinic": "Frankfurt Medical Center",
         "country": "Germany",
         "city": "Frankfurt am Main",
-        # "notes": "Сезонная вакцинация против гриппа"
+        "notes": "Сезонная вакцинация против гриппа"
     }
 
 # Для тестов с фэйковым пользователем

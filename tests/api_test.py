@@ -3,15 +3,7 @@ from sqlalchemy import select
 
 from app_vaccines.models.db_models import VaccineBase
 from tests.config import client, test_db
-from tests.conftest import (
-    vaccine_test_data, vaccine_in_db, vaccine_test_new_data, vaccine_test_json_data, vaccine_in_db_json)
-
-# @pytest.fixture
-# async def vaccine_test_db(session, vaccine_test):
-#     session.add(vaccine_test)
-#     await session.commit()
-#     await session.refresh(vaccine_test)
-#     return vaccine_test
+from tests.conftest import vaccine_in_db, vaccine_test_new_data, vaccine_test_json_data
 
 @pytest.mark.asyncio
 async def test_get_all_vaccines(client):
@@ -55,6 +47,39 @@ async def test_post_create_vaccine(client, vaccine_test_json_data):
     assert isinstance(data["message"], str)
     assert response.status_code == 201
 
+    vaccine = data["vaccine"]
+
+    assert vaccine["disease"] == "COVID-19"
+    assert vaccine["vaccine_name"] == "Comirnaty"
+    assert vaccine["dose_number"] == "1"
+    assert vaccine["vaccination_date"] == "2026-08-20"
+    assert vaccine["expiration_date"] == "2027-01-31"
+    assert vaccine["type_vaccine"] == "mRNA"
+    assert vaccine["lot"] == "ABC12345"
+    assert vaccine["manufacturer"] == "Pfizer-BioNTech"
+    assert vaccine["clinic"] == "City Medical Center"
+    assert vaccine["country"] == "Germany"
+    assert vaccine["city"] == "Frankfurt am Main"
+    assert vaccine["notes"] == "Вакцинация проведена без осложнений"
+
+@pytest.mark.asyncio
+async def test_post_create_vaccine_without_notes(client, vaccine_test_json_data):
+    """
+    Проверка создания вакцинации без notes.
+    """
+
+    vaccine_test_json_data.pop("notes")
+    response = await client.post(
+        "/vaccines",
+        json=vaccine_test_json_data,
+    )
+
+    assert response.status_code == 201
+    data = response.json()
+
+    assert "vaccine" in data
+    assert data["vaccine"]["notes"] is None
+
 @pytest.mark.asyncio
 async def test_get_vaccine(client, vaccine_in_db):
     """
@@ -84,6 +109,7 @@ async def test_get_vaccine(client, vaccine_in_db):
     assert vaccine["clinic"] == "City Medical Center"
     assert vaccine["country"] == "Germany"
     assert vaccine["city"] == "Frankfurt am Main"
+    assert vaccine["notes"] == "Вакцинация проведена без осложнений"
 
 @pytest.mark.asyncio
 async def test_get_vaccine_not_found(client):
@@ -128,6 +154,7 @@ async def test_put_vaccine(client, vaccine_in_db, test_db, vaccine_test_new_data
     assert updated_vaccine.clinic == "Frankfurt Medical Center"
     assert updated_vaccine.country == "Germany"
     assert updated_vaccine.city == "Frankfurt am Main"
+    assert updated_vaccine.notes == "Сезонная вакцинация против гриппа"
 
 @pytest.mark.asyncio
 async def test_put_vaccine_not_found(client, vaccine_test_new_data):
@@ -159,6 +186,13 @@ async def test_patch_vaccine(client, vaccine_in_db, test_db):
     assert data["vaccine"]["vaccine_name"] == vaccine_in_db.vaccine_name
     assert data["vaccine"]["clinic"] == vaccine_in_db.clinic
     assert data["vaccine"]["country"] == vaccine_in_db.country
+    assert data["vaccine"]["dose_number"] == vaccine_in_db.dose_number
+    assert data["vaccine"]["vaccination_date"] == vaccine_in_db.vaccination_date.isoformat()
+    assert data["vaccine"]["expiration_date"] == vaccine_in_db.expiration_date.isoformat()
+    assert data["vaccine"]["type_vaccine"] == vaccine_in_db.type_vaccine
+    assert data["vaccine"]["lot"] == vaccine_in_db.lot
+    assert data["vaccine"]["manufacturer"] == vaccine_in_db.manufacturer
+    assert data["vaccine"]["notes"] == vaccine_in_db.notes
     # Проверяем БД.
     result = await test_db.execute(
         select(VaccineBase).where(
@@ -170,8 +204,15 @@ async def test_patch_vaccine(client, vaccine_in_db, test_db):
     assert updated_vaccine.city == "Espoo"
     assert updated_vaccine.disease == vaccine_in_db.disease
     assert updated_vaccine.vaccine_name == vaccine_in_db.vaccine_name
+    assert updated_vaccine.dose_number == vaccine_in_db.dose_number
+    assert updated_vaccine.vaccination_date == vaccine_in_db.vaccination_date
+    assert updated_vaccine.expiration_date == vaccine_in_db.expiration_date
+    assert updated_vaccine.type_vaccine == vaccine_in_db.type_vaccine
+    assert updated_vaccine.lot == vaccine_in_db.lot
+    assert updated_vaccine.manufacturer == vaccine_in_db.manufacturer
     assert updated_vaccine.clinic == vaccine_in_db.clinic
     assert updated_vaccine.country == vaccine_in_db.country
+    assert updated_vaccine.notes == vaccine_in_db.notes
 
 @pytest.mark.asyncio
 async def test_patch_vaccine_multiple_fields(client, vaccine_in_db):
@@ -192,12 +233,20 @@ async def test_patch_vaccine_multiple_fields(client, vaccine_in_db):
 
     data = response.json()
 
+    # Измененные поля
     assert data["vaccine"]["city"] == "Espoo"
     assert data["vaccine"]["clinic"] == "New Clinic"
-    # Остальные поля не должны измениться.
+    # Неизмененные поля
     assert data["vaccine"]["disease"] == vaccine_in_db.disease
     assert data["vaccine"]["vaccine_name"] == vaccine_in_db.vaccine_name
+    assert data["vaccine"]["dose_number"] == vaccine_in_db.dose_number
+    assert data["vaccine"]["vaccination_date"] == (vaccine_in_db.vaccination_date.isoformat())
+    assert data["vaccine"]["expiration_date"] == (vaccine_in_db.expiration_date.isoformat())
+    assert data["vaccine"]["type_vaccine"] == vaccine_in_db.type_vaccine
+    assert data["vaccine"]["lot"] == vaccine_in_db.lot
+    assert data["vaccine"]["manufacturer"] == vaccine_in_db.manufacturer
     assert data["vaccine"]["country"] == vaccine_in_db.country
+    assert data["vaccine"]["notes"] == vaccine_in_db.notes
 
 @pytest.mark.asyncio
 async def test_patch_vaccine_not_found(client):
