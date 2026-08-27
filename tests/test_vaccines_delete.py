@@ -2,17 +2,17 @@ import pytest
 from sqlalchemy import select
 
 from app_vaccines.models.db_models import VaccineBase
-from tests.config import client, test_db
+from tests.config import client, test_db, authenticated_client
 from tests.conftest import vaccine_in_db
 
 @pytest.mark.asyncio
-async def test_delete_vaccine(client, vaccine_in_db, test_db):
+async def test_delete_vaccine(authenticated_client, vaccine_in_db, test_db):
     """
     Удаление существующей вакцинации
     """
 
     vaccine_id = vaccine_in_db.id
-    response = await client.delete(f"/vaccines/{vaccine_id}")
+    response = await authenticated_client.delete(f"/vaccines/{vaccine_id}")
 
     assert response.status_code == 200
     data = response.json()
@@ -30,12 +30,12 @@ async def test_delete_vaccine(client, vaccine_in_db, test_db):
     assert deleted_vaccine is None
 
 @pytest.mark.asyncio
-async def test_delete_vaccine_not_found(client):
+async def test_delete_vaccine_not_found(authenticated_client):
     """
     Удаление вакцинации, которой не существует
     """
 
-    response = await client.delete(
+    response = await authenticated_client.delete(
         "/vaccines/999999"
     )
 

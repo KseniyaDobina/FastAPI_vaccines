@@ -74,4 +74,3 @@ async def authenticated_client(client):
 
     yield client
     app.dependency_overrides.clear()
-

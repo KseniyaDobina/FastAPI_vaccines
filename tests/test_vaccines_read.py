@@ -19,12 +19,12 @@ async def test_get_all_vaccines(authenticated_client):
     assert response.status_code == 200
 
 @pytest.mark.asyncio
-async def test_get_vaccine(client, vaccine_in_db):
+async def test_get_vaccine(authenticated_client, vaccine_in_db):
     """
     Получение существующей вакцинации по ID
     """
 
-    response = await client.get(
+    response = await authenticated_client.get(
         f"/vaccines/{vaccine_in_db.id}"
     )
 
@@ -50,12 +50,12 @@ async def test_get_vaccine(client, vaccine_in_db):
     assert vaccine["notes"] == "Вакцинация проведена без осложнений"
 
 @pytest.mark.asyncio
-async def test_get_vaccine_not_found(client):
+async def test_get_vaccine_not_found(authenticated_client):
     """
     Получение вакцинации, которой не существует
     """
 
-    response = await client.get("/vaccines/999999")
+    response = await authenticated_client.get("/vaccines/999999")
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Данные о вакцинации не найдены"

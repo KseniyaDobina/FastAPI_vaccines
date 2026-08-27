@@ -30,7 +30,10 @@ async def get_all_vaccines(
             "vaccines": vaccines}
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=VaccineAPIResponse)
-async def create_vaccine(vaccine: VaccineCreate, session: AsyncSession = Depends(get_session)):
+async def create_vaccine(
+        vaccine: VaccineCreate,
+        current_user: CurrentUser = Depends(get_current_user),
+        session: AsyncSession = Depends(get_session)):
     """
     Создание записи о новой вакцинации
     """
@@ -40,7 +43,10 @@ async def create_vaccine(vaccine: VaccineCreate, session: AsyncSession = Depends
             "vaccine": new_vaccine}
 
 @router.get("/{vaccine_id}", response_model=VaccineAPIResponse)
-async def get_vaccine(vaccine_id: int, session: AsyncSession = Depends(get_session)):
+async def get_vaccine(
+        vaccine_id: int,
+        current_user: CurrentUser = Depends(get_current_user),
+        session: AsyncSession = Depends(get_session)):
     """
     Поиск вакцинации по id
     """
@@ -52,7 +58,11 @@ async def get_vaccine(vaccine_id: int, session: AsyncSession = Depends(get_sessi
     raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
 @router.put("/{vaccine_id}", response_model=VaccineAPIResponse)
-async def put_vaccine(vaccine_id: int, vaccine: VaccineCreate, session: AsyncSession = Depends(get_session)):
+async def put_vaccine(
+        vaccine_id: int,
+        vaccine: VaccineCreate,
+        current_user: CurrentUser = Depends(get_current_user),
+        session: AsyncSession = Depends(get_session)):
     """
     Обновление информации о вакцинации
     """
@@ -64,7 +74,11 @@ async def put_vaccine(vaccine_id: int, vaccine: VaccineCreate, session: AsyncSes
     raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
 @router.patch("/{vaccine_id}", response_model=VaccineAPIResponse)
-async def patch_vaccine(vaccine_id: int, vaccine: VaccineUpdate, session: AsyncSession = Depends(get_session)):
+async def patch_vaccine(
+        vaccine_id: int,
+        vaccine: VaccineUpdate,
+        current_user: CurrentUser = Depends(get_current_user),
+        session: AsyncSession = Depends(get_session)):
     """
     Обновление определенной информации о вакцине, можно указать только конкретное поле
     """
@@ -76,7 +90,10 @@ async def patch_vaccine(vaccine_id: int, vaccine: VaccineUpdate, session: AsyncS
             "vaccine": updated_vaccine}
 
 @router.delete("/{vaccine_id}", response_model=MessageAPIResponse)
-async def delete_vaccine(vaccine_id: int, session: AsyncSession = Depends(get_session)):
+async def delete_vaccine(
+        vaccine_id: int,
+        current_user: CurrentUser = Depends(get_current_user),
+        session: AsyncSession = Depends(get_session)):
     """
     Удаление записи о вакцинации
     """

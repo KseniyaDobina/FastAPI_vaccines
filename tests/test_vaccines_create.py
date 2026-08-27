@@ -1,25 +1,25 @@
 import pytest
 
-from .config import client, test_db
+from .config import client, test_db, authenticated_client
 from tests.conftest import vaccine_test_json_data
 
 @pytest.mark.asyncio
-async def test_post_without_data(client):
+async def test_post_without_data(authenticated_client):
     """
     Проверка валидации входных данных
     """
 
-    response = await client.post("/vaccines")
+    response = await authenticated_client.post("/vaccines")
 
     assert response.status_code == 422
 
 @pytest.mark.asyncio
-async def test_post_create_vaccine(client, vaccine_test_json_data):
+async def test_post_create_vaccine(authenticated_client, vaccine_test_json_data):
     """
     Проверка создания записи о вакцинации
     """
 
-    response = await client.post(
+    response = await authenticated_client.post(
         "/vaccines",
         json=vaccine_test_json_data,
     )
@@ -46,13 +46,13 @@ async def test_post_create_vaccine(client, vaccine_test_json_data):
     assert vaccine["notes"] == "Вакцинация проведена без осложнений"
 
 @pytest.mark.asyncio
-async def test_post_create_vaccine_without_notes(client, vaccine_test_json_data):
+async def test_post_create_vaccine_without_notes(authenticated_client, vaccine_test_json_data):
     """
     Проверка создания вакцинации без notes.
     """
 
     vaccine_test_json_data.pop("notes")
-    response = await client.post(
+    response = await authenticated_client.post(
         "/vaccines",
         json=vaccine_test_json_data,
     )
@@ -64,13 +64,13 @@ async def test_post_create_vaccine_without_notes(client, vaccine_test_json_data)
     assert data["vaccine"]["notes"] is None
 
 @pytest.mark.asyncio
-async def test_post_create_vaccine_without_expiration_date(client,vaccine_test_json_data):
+async def test_post_create_vaccine_without_expiration_date(authenticated_client,vaccine_test_json_data):
     """
     Проверка создание вакцинации без expiration_date
     """
 
     vaccine_test_json_data["expiration_date"] = None
-    response = await client.post(
+    response = await authenticated_client.post(
         "/vaccines",
         json=vaccine_test_json_data,
     )

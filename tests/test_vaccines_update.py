@@ -2,17 +2,17 @@ import pytest
 from sqlalchemy import select
 
 from app_vaccines.models.db_models import VaccineBase
-from tests.config import client, test_db
+from tests.config import client, test_db, authenticated_client
 from tests.conftest import vaccine_in_db, vaccine_test_new_data
 
 @pytest.mark.asyncio
-async def test_put_vaccine(client, vaccine_in_db, test_db, vaccine_test_new_data):
+async def test_put_vaccine(authenticated_client, vaccine_in_db, test_db, vaccine_test_new_data):
     """
     Обновление существующей вакцинации
     """
 
     vaccine_id = vaccine_in_db.id
-    response = await client.put(f"/vaccines/{vaccine_id}",json=vaccine_test_new_data)
+    response = await authenticated_client.put(f"/vaccines/{vaccine_id}",json=vaccine_test_new_data)
 
     assert response.status_code == 200
     data = response.json()
@@ -53,24 +53,24 @@ async def test_put_vaccine(client, vaccine_in_db, test_db, vaccine_test_new_data
     assert updated_vaccine.notes == "Сезонная вакцинация против гриппа"
 
 @pytest.mark.asyncio
-async def test_put_vaccine_not_found(client, vaccine_test_new_data):
+async def test_put_vaccine_not_found(authenticated_client, vaccine_test_new_data):
     """
     Обновление вакцинации, которой не существует
     """
 
-    response = await client.put("/vaccines/999999", json=vaccine_test_new_data)
+    response = await authenticated_client.put("/vaccines/999999", json=vaccine_test_new_data)
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Данные о вакцинации не найдены"
 
 @pytest.mark.asyncio
-async def test_patch_vaccine(client, vaccine_in_db, test_db):
+async def test_patch_vaccine(authenticated_client, vaccine_in_db, test_db):
     """
         Частичное обновление существующей вакцинации.
         Проверка, что изменилось только переданное поле.
         """
 
-    response = await client.patch(f"/vaccines/{vaccine_in_db.id}", json={"city": "Espoo"})
+    response = await authenticated_client.patch(f"/vaccines/{vaccine_in_db.id}", json={"city": "Espoo"})
 
     assert response.status_code == 200
     data = response.json()
@@ -111,13 +111,13 @@ async def test_patch_vaccine(client, vaccine_in_db, test_db):
     assert updated_vaccine.notes == vaccine_in_db.notes
 
 @pytest.mark.asyncio
-async def test_patch_vaccine_multiple_fields(client, vaccine_in_db):
+async def test_patch_vaccine_multiple_fields(authenticated_client, vaccine_in_db):
     """
     Проверка частичное обновление нескольких полей.
     """
 
     vaccine_id = vaccine_in_db.id
-    response = await client.patch(
+    response = await authenticated_client.patch(
         f"/vaccines/{vaccine_id}",
         json={
             "city": "Espoo",
@@ -145,8 +145,8 @@ async def test_patch_vaccine_multiple_fields(client, vaccine_in_db):
     assert data["vaccine"]["notes"] == vaccine_in_db.notes
 
 @pytest.mark.asyncio
-async def test_patch_vaccine_not_found(client):
-    response = await client.patch(
+async def test_patch_vaccine_not_found(authenticated_client):
+    response = await authenticated_client.patch(
         "/vaccines/999999",
         json={
             "city": "Espoo"
