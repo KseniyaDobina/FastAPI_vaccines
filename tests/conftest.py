@@ -56,4 +56,3 @@ async def vaccine_test_new_data():
         "city": "Frankfurt am Main",
         "notes": "Сезонная вакцинация против гриппа"
     }
-
