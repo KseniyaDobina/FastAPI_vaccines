@@ -17,7 +17,6 @@ async def test_put_vaccine(authenticated_client, vaccine_in_db, test_db, vaccine
     assert response.status_code == 200
     data = response.json()
 
-    assert "message" in data
     assert "vaccine" in data
     assert data["vaccine"]["id"] == vaccine_id
     assert data["vaccine"]["disease"] == "Грипп"
@@ -75,7 +74,6 @@ async def test_patch_vaccine(authenticated_client, vaccine_in_db, test_db):
     assert response.status_code == 200
     data = response.json()
 
-    assert "message" in data
     assert "vaccine" in data
     assert data["vaccine"]["city"] == "Espoo"
     assert data["vaccine"]["disease"] == vaccine_in_db.disease

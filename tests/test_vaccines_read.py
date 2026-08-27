@@ -12,9 +12,7 @@ async def test_get_all_vaccines(authenticated_client):
     response = await authenticated_client.get("/vaccines")
     data = response.json()
 
-    assert "message" in data
     assert "vaccines" in data
-    assert isinstance(data["message"], str)
     assert isinstance(data["vaccines"], list)
     assert response.status_code == 200
 
@@ -31,7 +29,6 @@ async def test_get_vaccine(authenticated_client, vaccine_in_db):
     assert response.status_code == 200
     data = response.json()
 
-    assert "message" in data
     assert "vaccine" in data
     vaccine = data["vaccine"]
 

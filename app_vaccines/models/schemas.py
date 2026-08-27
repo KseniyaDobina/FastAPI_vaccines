@@ -1,9 +1,7 @@
 from datetime import date
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 class VaccineCreate(BaseModel):
-    # date_created_note: date
-    # date_change_note: date
     disease: str = Field(min_length=3, max_length=100)
     vaccine_name: str = Field(min_length=3, max_length=100)
     dose_number: str = Field(min_length=1, max_length=30)
@@ -17,14 +15,26 @@ class VaccineCreate(BaseModel):
     city: str = Field(min_length=2, max_length=100)
     notes: str | None = Field(default=None, min_length=1, max_length=300)
 
+    @model_validator(mode="after")
+    def validate_expiration_date(self):
+        if (
+                self.expiration_date is not None
+                and self.expiration_date <= self.vaccination_date
+        ):
+            raise ValueError(
+                "expiration_date должна быть позже, чем  vaccination_date"
+            )
+
+        return self
+
 class VaccineID(VaccineCreate):
     id: int
     user_id: int
+    # date_created_note: date
+    # date_change_note: date
     model_config = ConfigDict(from_attributes=True)
 
 class VaccineUpdate(BaseModel):
-    # date_created_note: date
-    # date_change_note: date
     disease: str | None = Field(default=None, min_length=3, max_length=100)
     vaccine_name: str | None = Field(default=None, min_length=3, max_length=100)
     dose_number: str | None = Field(default=None, min_length=1, max_length=30)
@@ -38,12 +48,23 @@ class VaccineUpdate(BaseModel):
     city: str | None = Field(default=None, min_length=2, max_length=100)
     notes: str | None = Field(default=None, min_length=1, max_length=300)
 
+    @model_validator(mode="after")
+    def validate_dates(self):
+        if (
+                self.vaccination_date is not None
+                and self.expiration_date is not None
+                and self.expiration_date <= self.vaccination_date
+        ):
+            raise ValueError(
+                "expiration_date должна быть позже, чем vaccination_date"
+            )
+
+        return self
+
 class VaccineAPIResponse(BaseModel):
-    message: str
     vaccine: VaccineID
 
-class ListVaccineUpdateAPIResponse(BaseModel):
-    message: str
+class ListVaccineAPIResponse(BaseModel):
     vaccines: list[VaccineID]
 
 class MessageAPIResponse(BaseModel):

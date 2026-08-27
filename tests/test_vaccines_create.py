@@ -25,9 +25,7 @@ async def test_post_create_vaccine(authenticated_client, vaccine_test_json_data)
     )
     data = response.json()
 
-    assert "message" in data
     assert "vaccine" in data
-    assert isinstance(data["message"], str)
     assert response.status_code == 201
 
     vaccine = data["vaccine"]

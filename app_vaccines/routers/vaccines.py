@@ -5,7 +5,7 @@ from app_vaccines.auth.dependencies import get_current_user
 from app_vaccines.models.database import get_session
 from app_vaccines.models.repository import VaccineRepository, UserRepository
 from app_vaccines.models.schemas import (
-    VaccineCreate, VaccineUpdate, VaccineAPIResponse, ListVaccineUpdateAPIResponse, MessageAPIResponse, CurrentUser
+    VaccineCreate, VaccineUpdate, VaccineAPIResponse, ListVaccineAPIResponse, MessageAPIResponse, CurrentUser
 )
 from app_vaccines.routers import depends
 router = APIRouter(
@@ -13,7 +13,7 @@ router = APIRouter(
     tags=["Вакцины"]
 )
 
-@router.get("", response_model=ListVaccineUpdateAPIResponse)
+@router.get("", response_model=ListVaccineAPIResponse)
 async def get_all_vaccines(
         session: AsyncSession = Depends(get_session),
         pagination: dict = Depends(depends.pagination_parameters),
