@@ -1,6 +1,6 @@
 import pytest
 
-from tests.config import client, test_db
+from .config import client, test_db
 from tests.conftest import vaccine_test_json_data
 
 @pytest.mark.asyncio

@@ -1,8 +1,8 @@
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app_vaccines.models.schemas import VaccineCreate, VaccineID, VaccineUpdate
-from app_vaccines.models.db_models import VaccineBase
+from app_vaccines.models.db_models import VaccineBase, UserBase
+from app_vaccines.models.schemas import VaccineCreate, VaccineID, VaccineUpdate, CurrentUser, UserResponse
 
 class VaccineRepository:
     """
@@ -31,9 +31,10 @@ class VaccineService:
     Класс для добавления, изменения или удаления вакцин
     """
     @classmethod
-    async def add_vaccine(cls, vaccine: VaccineCreate, session: AsyncSession):
+    async def add_vaccine(cls, vaccine: VaccineCreate, user_id:int, session: AsyncSession):
         data = vaccine.model_dump()
-        new_vaccine = VaccineBase(**data)
+        # Пока заглушка с добавлением пользователя
+        new_vaccine = VaccineBase(**data, user_id=user_id)
         session.add(new_vaccine)
         await session.flush()
         await session.commit()
@@ -80,3 +81,26 @@ class VaccineService:
         await session.commit()
         # result.rowcount показывает, сколько строк было затронуто (0 или 1)
         return result.rowcount > 0
+
+
+class UserRepository:
+
+    @classmethod
+    async def get_or_create_user(cls, current_user: CurrentUser, session: AsyncSession) -> UserResponse:
+        result = await session.execute(select(UserBase).where(UserBase.keycloak_id == current_user.sub))
+        user = result.scalar_one_or_none()
+
+        if user:
+            return UserResponse.model_validate(user)
+
+        user = UserBase(
+            keycloak_id=current_user.sub,
+            username=current_user.username,
+            email=current_user.email,
+        )
+        session.add(user)
+
+        await session.commit()
+        await session.refresh(user)
+
+        return UserResponse.model_validate(user)

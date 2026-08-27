@@ -1,15 +1,15 @@
 import pytest
 
-from tests.config import client, test_db
+from tests.config import client, test_db, authenticated_client
 from tests.conftest import vaccine_in_db
 
 @pytest.mark.asyncio
-async def test_get_all_vaccines(client):
+async def test_get_all_vaccines(authenticated_client):
     """
     Тест на получение списка всех записей о вакцинации
     """
 
-    response = await client.get("/vaccines")
+    response = await authenticated_client.get("/vaccines")
     data = response.json()
 
     assert "message" in data

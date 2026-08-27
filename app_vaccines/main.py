@@ -8,14 +8,19 @@ from app_vaccines.routers import vaccines, users
 async def lifespan_async(application: FastAPI):
     await create_database()
     yield
-    # await delete_database() Пока ничего не удаляем
+    # Пока ничего не удаляем
+    # await delete_database()
 
 app = FastAPI(
     title="API для отслеживания своих вакцинаций",
     description="API создано для внесения информации о своих вакцинациях. "
                 "Нет связей с медицинской организацией. Введеные данные не проверяются в системах ОМС или ДМС.",
     version="0.0.1",
-    lifespan=lifespan_async
+    lifespan=lifespan_async,
+    swagger_ui_init_oauth={
+        "clientId": "fastapi",
+        "usePkceWithAuthorizationCodeGrant": True,
+    }
 )
 
 app.include_router(vaccines.router)

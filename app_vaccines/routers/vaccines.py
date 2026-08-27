@@ -1,20 +1,23 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app_vaccines.auth.dependencies import get_current_user
 from app_vaccines.models.database import get_session
-from app_vaccines.models.repository import VaccineRepository, VaccineService
+from app_vaccines.models.repository import VaccineRepository, VaccineService, UserRepository
 from app_vaccines.models.schemas import (
-    VaccineCreate, VaccineUpdate, VaccineAPIResponse, ListVaccineUpdateAPIResponse, MessageAPIResponse
+    VaccineCreate, VaccineUpdate, VaccineAPIResponse, ListVaccineUpdateAPIResponse, MessageAPIResponse, CurrentUser
 )
 from app_vaccines.routers import depends
-
 router = APIRouter(
     prefix="/vaccines",
     tags=["Вакцины"]
 )
 
 @router.get("", response_model=ListVaccineUpdateAPIResponse)
-async def get_all_vaccines(session: AsyncSession = Depends(get_session), pagination: dict = Depends(depends.pagination_parameters)):
+async def get_all_vaccines(
+        session: AsyncSession = Depends(get_session),
+        pagination: dict = Depends(depends.pagination_parameters),
+        current_user: CurrentUser = Depends(get_current_user)):
     """
     Получение списка всех вакцин
     """
@@ -31,7 +34,8 @@ async def create_vaccine(vaccine: VaccineCreate, session: AsyncSession = Depends
     """
     Создание записи о новой вакцинации
     """
-    new_vaccine = await VaccineService.add_vaccine(vaccine, session)
+    # Временно напрямую передаем user_id
+    new_vaccine = await VaccineService.add_vaccine(vaccine, 1, session)
     return {"message": f"Добавлена вакцина {new_vaccine.id}",
             "vaccine": new_vaccine}
 

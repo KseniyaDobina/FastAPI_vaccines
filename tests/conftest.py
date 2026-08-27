@@ -22,7 +22,8 @@ async def vaccine_test_data():
 
 @pytest_asyncio.fixture
 async def vaccine_test(vaccine_test_data):
-    return VaccineBase(**vaccine_test_data)
+    # Пока заглушка с пользователем
+    return VaccineBase(**vaccine_test_data, user_id = 1)
 
 @pytest_asyncio.fixture
 async def vaccine_in_db(test_db, vaccine_test):
@@ -56,13 +57,3 @@ async def vaccine_test_new_data():
         "notes": "Сезонная вакцинация против гриппа"
     }
 
-# Для тестов с фэйковым пользователем
-# app.dependency_overrides[get_current_user] = fake_user
-# def fake_user():
-#     return {
-#         "sub": "test-user-id",
-#         "preferred_username": "test-user",
-#         "realm_access": {
-#             "roles": ["user"]
-#         }
-#     }

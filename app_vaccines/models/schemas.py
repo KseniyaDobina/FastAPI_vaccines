@@ -2,7 +2,6 @@ from datetime import date
 from pydantic import BaseModel, ConfigDict, Field
 
 class VaccineCreate(BaseModel):
-    # user: str = Field(min_length=3, max_length=100)
     # date_created_note: date
     # date_change_note: date
     disease: str = Field(min_length=3, max_length=100)
@@ -20,10 +19,10 @@ class VaccineCreate(BaseModel):
 
 class VaccineID(VaccineCreate):
     id: int
+    user_id: int
     model_config = ConfigDict(from_attributes=True)
 
 class VaccineUpdate(BaseModel):
-    # user: str = Field(min_length=3, max_length=100)
     # date_created_note: date
     # date_change_note: date
     disease: str | None = Field(default=None, min_length=3, max_length=100)
@@ -49,3 +48,15 @@ class ListVaccineUpdateAPIResponse(BaseModel):
 
 class MessageAPIResponse(BaseModel):
     message: str
+
+class CurrentUser(BaseModel):
+    sub: str
+    username: str | None = None
+    email: str | None = None
+
+class UserResponse(BaseModel):
+    id: int
+    username: str | None = None
+    email: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)

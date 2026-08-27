@@ -2,8 +2,10 @@ import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
+from app_vaccines.auth.dependencies import get_current_user
 from app_vaccines.main import app
 from app_vaccines.models.database import Base, get_session
+from app_vaccines.models.schemas import CurrentUser
 
 # Тестовая бд
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
@@ -55,3 +57,21 @@ async def client(test_db):
 
     # очищаем override
     app.dependency_overrides.clear()
+
+@pytest_asyncio.fixture
+async def authenticated_client(client):
+
+    async def override_get_current_user():
+        return CurrentUser(
+            sub="test-keycloak-id",
+            username="test_user",
+            email="test@example.com",
+        )
+
+    app.dependency_overrides[get_current_user] = (
+        override_get_current_user
+    )
+
+    yield client
+    app.dependency_overrides.clear()
+
