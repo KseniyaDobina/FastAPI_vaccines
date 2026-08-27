@@ -27,7 +27,7 @@ class VaccineRepository:
         return VaccineID.model_validate(vaccine)
 
     @classmethod
-    async def add_vaccine(cls, vaccine: VaccineCreate, user_id:int, session: AsyncSession):
+    async def add_vaccine(cls, vaccine: VaccineCreate, user_id:int, session: AsyncSession) -> VaccineID:
         data = vaccine.model_dump()
         # Пока заглушка с добавлением пользователя
         new_vaccine = VaccineBase(**data, user_id=user_id)
@@ -35,10 +35,10 @@ class VaccineRepository:
         await session.flush()
         await session.commit()
         await session.refresh(new_vaccine)
-        return new_vaccine
+        return VaccineID.model_validate(new_vaccine)
 
     @classmethod
-    async def update_vaccine(cls, vaccine_id: int, vaccine: VaccineCreate, session: AsyncSession):
+    async def update_vaccine(cls, vaccine_id: int, vaccine: VaccineCreate, session: AsyncSession) -> VaccineID | None:
         query = update(VaccineBase).where(VaccineBase.id == vaccine_id).values(**vaccine.model_dump())
         result = await session.execute(query)
         if result.rowcount == 0:
@@ -55,7 +55,8 @@ class VaccineRepository:
         return VaccineID.model_validate(updated_db_model)
 
     @classmethod
-    async def update_vaccine_patch(cls, vaccine_id: int, vaccine: VaccineUpdate, session: AsyncSession):
+    async def update_vaccine_patch(cls, vaccine_id: int, vaccine: VaccineUpdate, session: AsyncSession) \
+            -> VaccineID | None:
         query = select(VaccineBase).where(VaccineBase.id == vaccine_id)
         result = await session.execute(query)
         vaccine_db = result.scalar_one_or_none()
