@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import select
 
-from app_vaccines.models.db_models import VaccineBase
+from app_vaccines.models.db_models import Vaccine
 from tests.config import client, test_db, authenticated_client
 from tests.conftest import vaccine_in_db
 
@@ -21,8 +21,8 @@ async def test_delete_vaccine(authenticated_client, vaccine_in_db, test_db):
     assert data["message"] == f"Удалена вакцина №{vaccine_id}"
     # Проверяем, что запись действительно удалена
     result = await test_db.execute(
-        select(VaccineBase).where(
-            VaccineBase.id == vaccine_id
+        select(Vaccine).where(
+            Vaccine.id == vaccine_id
         )
     )
     deleted_vaccine = result.scalar_one_or_none()

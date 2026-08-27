@@ -6,7 +6,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 class Base(DeclarativeBase):
     pass
 
-class VaccineBase(Base):
+class Vaccine(Base):
     __tablename__ = 'vaccines'
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True, )
@@ -25,7 +25,7 @@ class VaccineBase(Base):
     city: Mapped[str]
     notes: Mapped[str | None] = mapped_column(nullable=True)
 
-class UserBase(Base):
+class User(Base):
     __tablename__ = 'users'
     id: Mapped[int] = mapped_column(primary_key=True)
     keycloak_id: Mapped[str]

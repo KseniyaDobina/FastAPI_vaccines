@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import select
 
-from app_vaccines.models.db_models import VaccineBase
+from app_vaccines.models.db_models import Vaccine
 from tests.config import client, test_db, authenticated_client
 from tests.conftest import vaccine_in_db, vaccine_test_new_data
 
@@ -34,7 +34,7 @@ async def test_put_vaccine(authenticated_client, vaccine_in_db, test_db, vaccine
 
     # Проверяем, что данные действительно изменились в БД
     result = await test_db.execute(
-        select(VaccineBase).where(VaccineBase.id == vaccine_id)
+        select(Vaccine).where(Vaccine.id == vaccine_id)
     )
     updated_vaccine = result.scalar_one()
 
@@ -89,8 +89,8 @@ async def test_patch_vaccine(authenticated_client, vaccine_in_db, test_db):
     assert data["vaccine"]["notes"] == vaccine_in_db.notes
     # Проверяем БД.
     result = await test_db.execute(
-        select(VaccineBase).where(
-            VaccineBase.id == vaccine_in_db.id
+        select(Vaccine).where(
+            Vaccine.id == vaccine_in_db.id
         )
     )
     updated_vaccine = result.scalar_one()

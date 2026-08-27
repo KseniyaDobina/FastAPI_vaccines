@@ -1,7 +1,7 @@
 from datetime import date
 import pytest_asyncio
 
-from app_vaccines.models.db_models import VaccineBase
+from app_vaccines.models.db_models import Vaccine
 
 @pytest_asyncio.fixture
 async def vaccine_test_data():
@@ -23,7 +23,7 @@ async def vaccine_test_data():
 @pytest_asyncio.fixture
 async def vaccine_test(vaccine_test_data):
     # Пока заглушка с пользователем
-    return VaccineBase(**vaccine_test_data, user_id = 1)
+    return Vaccine(**vaccine_test_data, user_id = 1)
 
 @pytest_asyncio.fixture
 async def vaccine_in_db(test_db, vaccine_test):

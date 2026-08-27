@@ -1,7 +1,7 @@
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app_vaccines.models.db_models import VaccineBase, UserBase
+from app_vaccines.models.db_models import Vaccine, User
 from app_vaccines.models.schemas import VaccineCreate, VaccineID, VaccineUpdate, CurrentUser, UserResponse
 
 class VaccineRepository:
@@ -11,7 +11,7 @@ class VaccineRepository:
     """
     @classmethod
     async def get_vaccines(cls, session: AsyncSession) -> list[VaccineID]:
-        query = select(VaccineBase)
+        query = select(Vaccine)
         result = await session.execute(query)
         vaccine_models = result.scalars().all()
         vaccines = [VaccineID.model_validate(vaccine_model) for vaccine_model in vaccine_models]
@@ -19,7 +19,7 @@ class VaccineRepository:
 
     @classmethod
     async def get_vaccine_by_id(cls, vaccine_id: int, session: AsyncSession):
-        query = select(VaccineBase).where(VaccineBase.id == vaccine_id)
+        query = select(Vaccine).where(Vaccine.id == vaccine_id)
         result = await session.execute(query)
         vaccine = result.scalar_one_or_none()
         if vaccine is None:
@@ -30,7 +30,7 @@ class VaccineRepository:
     async def add_vaccine(cls, vaccine: VaccineCreate, user_id:int, session: AsyncSession) -> VaccineID:
         data = vaccine.model_dump()
         # Пока заглушка с добавлением пользователя
-        new_vaccine = VaccineBase(**data, user_id=user_id)
+        new_vaccine = Vaccine(**data, user_id=user_id)
         session.add(new_vaccine)
         await session.flush()
         await session.commit()
@@ -39,7 +39,7 @@ class VaccineRepository:
 
     @classmethod
     async def update_vaccine(cls, vaccine_id: int, vaccine: VaccineCreate, session: AsyncSession) -> VaccineID | None:
-        query = update(VaccineBase).where(VaccineBase.id == vaccine_id).values(**vaccine.model_dump())
+        query = update(Vaccine).where(Vaccine.id == vaccine_id).values(**vaccine.model_dump())
         result = await session.execute(query)
         if result.rowcount == 0:
             await session.rollback()
@@ -47,7 +47,7 @@ class VaccineRepository:
 
         await session.commit()
         result = await session.execute(
-            select(VaccineBase).where(VaccineBase.id == vaccine_id)
+            select(Vaccine).where(Vaccine.id == vaccine_id)
         )
         updated_db_model = result.scalar_one_or_none()
         if updated_db_model is None:
@@ -57,7 +57,7 @@ class VaccineRepository:
     @classmethod
     async def update_vaccine_patch(cls, vaccine_id: int, vaccine: VaccineUpdate, session: AsyncSession) \
             -> VaccineID | None:
-        query = select(VaccineBase).where(VaccineBase.id == vaccine_id)
+        query = select(Vaccine).where(Vaccine.id == vaccine_id)
         result = await session.execute(query)
         vaccine_db = result.scalar_one_or_none()
         if vaccine_db is None:
@@ -73,7 +73,7 @@ class VaccineRepository:
 
     @classmethod
     async def delete_vaccine(cls, vaccine_id: int, session: AsyncSession) -> bool:
-        query = delete(VaccineBase).where(VaccineBase.id == vaccine_id)
+        query = delete(Vaccine).where(Vaccine.id == vaccine_id)
         result = await session.execute(query)
         await session.commit()
         # result.rowcount показывает, сколько строк было затронуто (0 или 1)
@@ -84,13 +84,13 @@ class UserRepository:
 
     @classmethod
     async def get_or_create_user(cls, current_user: CurrentUser, session: AsyncSession) -> UserResponse:
-        result = await session.execute(select(UserBase).where(UserBase.keycloak_id == current_user.sub))
+        result = await session.execute(select(User).where(User.keycloak_id == current_user.sub))
         user = result.scalar_one_or_none()
 
         if user:
             return UserResponse.model_validate(user)
 
-        user = UserBase(
+        user = User(
             keycloak_id=current_user.sub,
             username=current_user.username,
             email=current_user.email,
