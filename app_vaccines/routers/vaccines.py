@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app_vaccines.auth.dependencies import get_current_user
 from app_vaccines.models.database import get_session
-from app_vaccines.models.repository import VaccineRepository, VaccineService, UserRepository
+from app_vaccines.models.repository import VaccineRepository, UserRepository
 from app_vaccines.models.schemas import (
     VaccineCreate, VaccineUpdate, VaccineAPIResponse, ListVaccineUpdateAPIResponse, MessageAPIResponse, CurrentUser
 )
@@ -38,7 +38,7 @@ async def create_vaccine(
     Создание записи о новой вакцинации
     """
     # Временно напрямую передаем user_id
-    new_vaccine = await VaccineService.add_vaccine(vaccine, 1, session)
+    new_vaccine = await VaccineRepository.add_vaccine(vaccine, 1, session)
     return {"message": f"Добавлена вакцина {new_vaccine.id}",
             "vaccine": new_vaccine}
 
@@ -66,7 +66,7 @@ async def put_vaccine(
     """
     Обновление информации о вакцинации
     """
-    new_vaccine_db = await VaccineService.update_vaccine(vaccine_id, vaccine, session)
+    new_vaccine_db = await VaccineRepository.update_vaccine(vaccine_id, vaccine, session)
     if new_vaccine_db is not None:
         return {"message": f"Информация о вакцине изменена",
                 "vaccine": new_vaccine_db}
@@ -82,7 +82,7 @@ async def patch_vaccine(
     """
     Обновление определенной информации о вакцине, можно указать только конкретное поле
     """
-    updated_vaccine = await VaccineService.update_vaccine_patch(vaccine_id, vaccine, session)
+    updated_vaccine = await VaccineRepository.update_vaccine_patch(vaccine_id, vaccine, session)
     if updated_vaccine is None:
         raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
@@ -97,7 +97,7 @@ async def delete_vaccine(
     """
     Удаление записи о вакцинации
     """
-    result = await VaccineService.delete_vaccine(vaccine_id, session)
+    result = await VaccineRepository.delete_vaccine(vaccine_id, session)
     if result:
         return {"message": f"Удалена вакцина №{vaccine_id}"}
 

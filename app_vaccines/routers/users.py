@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app_vaccines.auth.dependencies import get_current_user
 from app_vaccines.models.database import get_session
-from app_vaccines.models.repository import VaccineRepository, VaccineService, UserRepository
+from app_vaccines.models.repository import VaccineRepository, UserRepository
 
 
 router = APIRouter(

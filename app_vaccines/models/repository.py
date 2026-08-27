@@ -6,7 +6,8 @@ from app_vaccines.models.schemas import VaccineCreate, VaccineID, VaccineUpdate,
 
 class VaccineRepository:
     """
-    Класс для получения информации о вакцинах
+    Класс для получения информации о вакцинах.
+    Добавления, изменения или удаления вакцин
     """
     @classmethod
     async def get_vaccines(cls, session: AsyncSession) -> list[VaccineID]:
@@ -25,11 +26,6 @@ class VaccineRepository:
             return None
         return VaccineID.model_validate(vaccine)
 
-
-class VaccineService:
-    """
-    Класс для добавления, изменения или удаления вакцин
-    """
     @classmethod
     async def add_vaccine(cls, vaccine: VaccineCreate, user_id:int, session: AsyncSession):
         data = vaccine.model_dump()
