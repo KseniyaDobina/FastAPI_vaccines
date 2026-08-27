@@ -22,7 +22,7 @@ class VaccineCreate(BaseModel):
                 and self.expiration_date <= self.vaccination_date
         ):
             raise ValueError(
-                "expiration_date должна быть позже, чем  vaccination_date"
+                "expiration_date должна быть позже, чем vaccination_date"
             )
 
         return self

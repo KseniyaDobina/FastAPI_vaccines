@@ -14,5 +14,14 @@ router = APIRouter(
 
 @router.get("/user")
 async def get_user(session: AsyncSession = Depends(get_session), current_user: dict = Depends(get_current_user)):
+
+    return
+
+@router.post("/user")
+async def get_user(session: AsyncSession = Depends(get_session), current_user: dict = Depends(get_current_user)):
+    """
+    Создание нового пользователя в сервисе
+    """
     user = await (UserRepository.get_or_create_user(current_user, session))
     return user
+

@@ -82,7 +82,7 @@ async def patch_vaccine(
     """
     Обновление определенной информации о вакцине, можно указать только конкретное поле
     """
-    updated_vaccine = await VaccineRepository.update_vaccine_patch(vaccine_id, vaccine, session)
+    updated_vaccine = await VaccineRepository.update_vaccine(vaccine_id, vaccine, session)
     if updated_vaccine is None:
         raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 

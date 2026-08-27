@@ -38,37 +38,33 @@ class VaccineRepository:
         return VaccineID.model_validate(new_vaccine)
 
     @classmethod
-    async def update_vaccine(cls, vaccine_id: int, vaccine: VaccineCreate, session: AsyncSession) -> VaccineID | None:
-        query = update(Vaccine).where(Vaccine.id == vaccine_id).values(**vaccine.model_dump())
-        result = await session.execute(query)
-        if result.rowcount == 0:
-            await session.rollback()
-            return None
-
-        await session.commit()
-        result = await session.execute(
-            select(Vaccine).where(Vaccine.id == vaccine_id)
-        )
-        updated_db_model = result.scalar_one_or_none()
-        if updated_db_model is None:
-            return None
-        return VaccineID.model_validate(updated_db_model)
-
-    @classmethod
-    async def update_vaccine_patch(cls, vaccine_id: int, vaccine: VaccineUpdate, session: AsyncSession) \
-            -> VaccineID | None:
-        query = select(Vaccine).where(Vaccine.id == vaccine_id)
-        result = await session.execute(query)
+    async def update_vaccine(
+            cls,
+            vaccine_id: int,
+            vaccine: VaccineCreate | VaccineUpdate,
+            session: AsyncSession
+    ) -> VaccineID | None:
+        result = await session.execute(select(Vaccine).where(Vaccine.id == vaccine_id))
         vaccine_db = result.scalar_one_or_none()
+
         if vaccine_db is None:
             return None
-
         update_data = vaccine.model_dump(exclude_unset=True)
+        new_vaccination_date = update_data.get("vaccination_date", vaccine_db.vaccination_date)
+        new_expiration_date = update_data.get("expiration_date", vaccine_db.expiration_date)
+
+        if (
+                new_expiration_date is not None
+                and new_expiration_date <= new_vaccination_date
+        ):
+            raise ValueError("expiration_date должна быть позже, чем vaccination_date")
+
         for field, value in update_data.items():
             setattr(vaccine_db, field, value)
 
         await session.commit()
         await session.refresh(vaccine_db)
+
         return VaccineID.model_validate(vaccine_db)
 
     @classmethod
