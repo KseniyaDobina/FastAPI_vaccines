@@ -17,7 +17,7 @@ router = APIRouter(
 async def get_user(session: AsyncSession = Depends(get_session), current_user: dict = Depends(get_current_user)):
     return current_user
 
-@router.post("/user", status_code=status.HTTP_201_CREATED)
+@router.post("/me", status_code=status.HTTP_201_CREATED)
 async def create_user(
         session: AsyncSession = Depends(get_session),
         current_user: CurrentUser = Depends(get_current_user)

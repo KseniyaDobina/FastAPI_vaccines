@@ -24,9 +24,10 @@ async def get_all_vaccines(
 
     if user_id is None:
         raise HTTPException(status_code=401, detail="Пользователь не создан в сервисе, нужно его создать в users")
-    # skip = await pagination["skip"]
-    # limit = await pagination["limit"]
-    vaccines = await VaccineRepository.get_vaccines(user_id, session)
+
+    skip = pagination["skip"]
+    limit = pagination["limit"]
+    vaccines = await VaccineRepository.get_vaccines(user_id, skip, limit, session)
 
     return vaccines
 

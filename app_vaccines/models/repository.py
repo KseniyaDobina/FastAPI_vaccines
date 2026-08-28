@@ -10,8 +10,8 @@ class VaccineRepository:
     Добавления, изменения или удаления вакцин
     """
     @classmethod
-    async def get_vaccines(cls, user: int, session: AsyncSession) -> list[VaccineID]:
-        query = select(Vaccine).where(Vaccine.user_id == user)
+    async def get_vaccines(cls, user: int, skip: int, limit: int, session: AsyncSession) -> list[VaccineID]:
+        query = select(Vaccine).where(Vaccine.user_id == user).offset(skip).limit(limit)
         result = await session.execute(query)
         vaccine_models = result.scalars().all()
         vaccines = [VaccineID.model_validate(vaccine_model) for vaccine_model in vaccine_models]
