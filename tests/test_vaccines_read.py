@@ -1,6 +1,6 @@
 import pytest
 
-from tests.config import client, test_db, authenticated_client
+from tests.config import client, test_db, authenticated_client, test_user
 from tests.conftest import vaccine_in_db
 
 @pytest.mark.asyncio
@@ -12,8 +12,7 @@ async def test_get_all_vaccines(authenticated_client):
     response = await authenticated_client.get("/vaccines")
     data = response.json()
 
-    assert "vaccines" in data
-    assert isinstance(data["vaccines"], list)
+    assert isinstance(data, list)
     assert response.status_code == 200
 
 @pytest.mark.asyncio
@@ -27,24 +26,21 @@ async def test_get_vaccine(authenticated_client, vaccine_in_db):
     )
 
     assert response.status_code == 200
+
     data = response.json()
-
-    assert "vaccine" in data
-    vaccine = data["vaccine"]
-
-    assert vaccine["id"] == vaccine_in_db.id
-    assert vaccine["disease"] == "COVID-19"
-    assert vaccine["vaccine_name"] == "Comirnaty"
-    assert vaccine["dose_number"] == "1"
-    assert vaccine["vaccination_date"] == "2026-08-20"
-    assert vaccine["expiration_date"] == "2027-01-31"
-    assert vaccine["type_vaccine"] == "mRNA"
-    assert vaccine["lot"] == "ABC12345"
-    assert vaccine["manufacturer"] == "Pfizer-BioNTech"
-    assert vaccine["clinic"] == "City Medical Center"
-    assert vaccine["country"] == "Germany"
-    assert vaccine["city"] == "Frankfurt am Main"
-    assert vaccine["notes"] == "Вакцинация проведена без осложнений"
+    assert data["id"] == vaccine_in_db.id
+    assert data["disease"] == "COVID-19"
+    assert data["vaccine_name"] == "Comirnaty"
+    assert data["dose_number"] == "1"
+    assert data["vaccination_date"] == "2026-08-20"
+    assert data["expiration_date"] == "2027-01-31"
+    assert data["type_vaccine"] == "mRNA"
+    assert data["lot"] == "ABC12345"
+    assert data["manufacturer"] == "Pfizer-BioNTech"
+    assert data["clinic"] == "City Medical Center"
+    assert data["country"] == "Germany"
+    assert data["city"] == "Frankfurt am Main"
+    assert data["notes"] == "Вакцинация проведена без осложнений"
 
 @pytest.mark.asyncio
 async def test_get_vaccine_not_found(authenticated_client):

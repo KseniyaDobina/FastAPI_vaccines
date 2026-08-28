@@ -1,7 +1,9 @@
 from datetime import date
 import pytest_asyncio
 
-from app_vaccines.models.db_models import Vaccine
+from .config import test_db
+from app_vaccines.models.db_models import Vaccine, User
+
 
 @pytest_asyncio.fixture
 async def vaccine_test_data():

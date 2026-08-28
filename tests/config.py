@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from app_vaccines.auth.dependencies import get_current_user
 from app_vaccines.main import app
 from app_vaccines.models.database import Base, get_session
+from app_vaccines.models.db_models import User
 from app_vaccines.models.schemas import CurrentUser
 
 # Тестовая бд
@@ -59,7 +60,21 @@ async def client(test_db):
     app.dependency_overrides.clear()
 
 @pytest_asyncio.fixture
-async def authenticated_client(client):
+async def test_user(test_db):
+    user = User(
+        keycloak_id="test-keycloak-id",
+        username="test_user",
+        email="test@example.com",
+    )
+
+    test_db.add(user)
+    await test_db.commit()
+    await test_db.refresh(user)
+
+    return user
+
+@pytest_asyncio.fixture
+async def authenticated_client(client, test_user):
 
     async def override_get_current_user():
         return CurrentUser(

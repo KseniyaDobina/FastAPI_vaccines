@@ -1,6 +1,6 @@
 import pytest
 
-from .config import client, test_db, authenticated_client
+from .config import client, test_db, authenticated_client, test_user
 from tests.conftest import vaccine_test_json_data
 
 @pytest.mark.asyncio
@@ -25,23 +25,19 @@ async def test_post_create_vaccine(authenticated_client, vaccine_test_json_data)
     )
     data = response.json()
 
-    assert "vaccine" in data
     assert response.status_code == 201
-
-    vaccine = data["vaccine"]
-
-    assert vaccine["disease"] == "COVID-19"
-    assert vaccine["vaccine_name"] == "Comirnaty"
-    assert vaccine["dose_number"] == "1"
-    assert vaccine["vaccination_date"] == "2026-08-20"
-    assert vaccine["expiration_date"] == "2027-01-31"
-    assert vaccine["type_vaccine"] == "mRNA"
-    assert vaccine["lot"] == "ABC12345"
-    assert vaccine["manufacturer"] == "Pfizer-BioNTech"
-    assert vaccine["clinic"] == "City Medical Center"
-    assert vaccine["country"] == "Germany"
-    assert vaccine["city"] == "Frankfurt am Main"
-    assert vaccine["notes"] == "Вакцинация проведена без осложнений"
+    assert data["disease"] == "COVID-19"
+    assert data["vaccine_name"] == "Comirnaty"
+    assert data["dose_number"] == "1"
+    assert data["vaccination_date"] == "2026-08-20"
+    assert data["expiration_date"] == "2027-01-31"
+    assert data["type_vaccine"] == "mRNA"
+    assert data["lot"] == "ABC12345"
+    assert data["manufacturer"] == "Pfizer-BioNTech"
+    assert data["clinic"] == "City Medical Center"
+    assert data["country"] == "Germany"
+    assert data["city"] == "Frankfurt am Main"
+    assert data["notes"] == "Вакцинация проведена без осложнений"
 
 @pytest.mark.parametrize(
     "field,value",
@@ -113,10 +109,9 @@ async def test_post_create_vaccine_without_notes(authenticated_client, vaccine_t
     )
 
     assert response.status_code == 201
-    data = response.json()
 
-    assert "vaccine" in data
-    assert data["vaccine"]["notes"] is None
+    data = response.json()
+    assert data["notes"] is None
 
 @pytest.mark.asyncio
 async def test_post_create_vaccine_without_expiration_date(authenticated_client,vaccine_test_json_data):
@@ -133,7 +128,7 @@ async def test_post_create_vaccine_without_expiration_date(authenticated_client,
     assert response.status_code == 201
 
     data = response.json()
-    assert data["vaccine"]["expiration_date"] is None
+    assert data["expiration_date"] is None
 
 @pytest.mark.parametrize(
     "field,value",

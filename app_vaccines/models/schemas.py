@@ -61,12 +61,6 @@ class VaccineUpdate(BaseModel):
 
         return self
 
-class VaccineAPIResponse(BaseModel):
-    vaccine: VaccineID
-
-class ListVaccineAPIResponse(BaseModel):
-    vaccines: list[VaccineID]
-
 class MessageAPIResponse(BaseModel):
     message: str
 

@@ -1,4 +1,4 @@
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app_vaccines.models.db_models import Vaccine, User
@@ -10,16 +10,16 @@ class VaccineRepository:
     Добавления, изменения или удаления вакцин
     """
     @classmethod
-    async def get_vaccines(cls, session: AsyncSession) -> list[VaccineID]:
-        query = select(Vaccine)
+    async def get_vaccines(cls, user: int, session: AsyncSession) -> list[VaccineID]:
+        query = select(Vaccine).where(Vaccine.user_id == user)
         result = await session.execute(query)
         vaccine_models = result.scalars().all()
         vaccines = [VaccineID.model_validate(vaccine_model) for vaccine_model in vaccine_models]
         return vaccines
 
     @classmethod
-    async def get_vaccine_by_id(cls, vaccine_id: int, session: AsyncSession):
-        query = select(Vaccine).where(Vaccine.id == vaccine_id)
+    async def get_vaccine_by_id(cls, vaccine_id: int, user: int, session: AsyncSession):
+        query = select(Vaccine).where(Vaccine.id == vaccine_id, Vaccine.user_id == user)
         result = await session.execute(query)
         vaccine = result.scalar_one_or_none()
         if vaccine is None:
@@ -29,7 +29,6 @@ class VaccineRepository:
     @classmethod
     async def add_vaccine(cls, vaccine: VaccineCreate, user_id:int, session: AsyncSession) -> VaccineID:
         data = vaccine.model_dump()
-        # Пока заглушка с добавлением пользователя
         new_vaccine = Vaccine(**data, user_id=user_id)
         session.add(new_vaccine)
         await session.flush()
@@ -42,9 +41,12 @@ class VaccineRepository:
             cls,
             vaccine_id: int,
             vaccine: VaccineCreate | VaccineUpdate,
+            user: int,
             session: AsyncSession
     ) -> VaccineID | None:
-        result = await session.execute(select(Vaccine).where(Vaccine.id == vaccine_id))
+        result = await session.execute(
+            select(Vaccine).where(Vaccine.id == vaccine_id, Vaccine.user_id == user)
+        )
         vaccine_db = result.scalar_one_or_none()
 
         if vaccine_db is None:
@@ -68,8 +70,8 @@ class VaccineRepository:
         return VaccineID.model_validate(vaccine_db)
 
     @classmethod
-    async def delete_vaccine(cls, vaccine_id: int, session: AsyncSession) -> bool:
-        query = delete(Vaccine).where(Vaccine.id == vaccine_id)
+    async def delete_vaccine(cls, vaccine_id: int, user:int, session: AsyncSession) -> bool:
+        query = delete(Vaccine).where(Vaccine.id == vaccine_id, Vaccine.user_id == user)
         result = await session.execute(query)
         await session.commit()
         # result.rowcount показывает, сколько строк было затронуто (0 или 1)
@@ -79,12 +81,20 @@ class VaccineRepository:
 class UserRepository:
 
     @classmethod
-    async def get_or_create_user(cls, current_user: CurrentUser, session: AsyncSession) -> UserResponse:
+    async def get_user(cls, current_user: CurrentUser, session: AsyncSession) -> int | None:
+        result = await session.execute(select(User).where(User.keycloak_id == current_user.sub))
+        user = result.scalar_one_or_none()
+        if user is None:
+            return None
+        return user.id
+
+    @classmethod
+    async def create_user(cls, current_user: CurrentUser, session: AsyncSession) -> UserResponse | None:
         result = await session.execute(select(User).where(User.keycloak_id == current_user.sub))
         user = result.scalar_one_or_none()
 
         if user:
-            return UserResponse.model_validate(user)
+            return None
 
         user = User(
             keycloak_id=current_user.sub,
