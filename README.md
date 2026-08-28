@@ -4,7 +4,17 @@
 
 Во многих медицинских учреждениях информация о ранее сделанных прививках хранится в разных системах или вовсе теряется при смене поликлиники. Цель проекта — создать простой REST API для хранения собственной истории вакцинации.
 
-Проект создан в учебных целях для изучения FastAPI и автоматизированного тестирования API. Приложение позволяет создавать, получать, изменять и удалять записи о вакцинации.
+Проект создан в учебных целях для практики:
+
+* разработки REST API на FastAPI;
+* асинхронной работы с базой данных;
+* SQLAlchemy 2.x;
+* Pydantic;
+* JWT-аутентификации и интеграции с Keycloak;
+* Repository pattern;
+* автоматизированного API-тестирования;
+* Docker;
+* GitHub Actions CI.
 
 > ⚠️ Важно:
 > API не связано с государственными или частными медицинскими учреждениями.
@@ -16,31 +26,49 @@
 
 ### Vaccinations
 
-* Получение списка вакцинаций `GET`
-* Получение вакцинации по `id`
-* Создание записи о вакцинации `POST`
-* Полное обновление записи через `PUT`
-* Частичное обновление через `PATCH`
-* Удаление записи `DELETE`
-* Валидация входных данных через Pydantic
-* Обработка ошибок `404 Not Found`
+API поддерживает полный CRUD для записей о вакцинации:
+
+* получение списка вакцинаций;
+* получение вакцинации по ID;
+* создание новой записи;
+* полное обновление записи через `PUT`;
+* частичное обновление через `PATCH`;
+* удаление записи;
+* валидация входных данных;
+* проверка связанных дат;
+* обработка отсутствующих записей.
 
 ### Authentication
 
-* Работа с авторизацией пользователя
-* Получение текущего пользователя через защищённый endpoint
-* JWT / Keycloak integration
+Для защиты API используется JWT-аутентификация с интеграцией **Keycloak**.
 
-### Development & QA
+Приложение:
 
-* Асинхронная работа с SQLite
-* SQLAlchemy 2.x
-* Repository / Service layer
-* Docker
-* Автоматизированные API-тесты
-* GitHub Actions CI
-* Swagger / OpenAPI documentation
+* получает JWT из `Authorization: Bearer <token>`;
+* проверяет подпись JWT;
+* использует OIDC-конфигурацию Keycloak;
+* определяет текущего пользователя по JWT;
+* связывает локального пользователя с идентификатором из Keycloak;
+* ограничивает доступ к вакцинациям текущего пользователя.
 
+### 🧪 Testing
+
+Проект содержит автоматизированные API-тесты на:
+
+* создание вакцинации;
+* получение вакцинаций;
+* обновление;
+* частичное обновление;
+* удаление;
+* валидацию входных данных;
+* обработку ошибок;
+* работу пользователей.
+
+Для тестов используется отдельная SQLite database и dependency overrides FastAPI.
+
+### Development
+
+Проект поддерживает запуск в Docker и автоматический запуск тестов через GitHub Actions.
 
 ---
 
@@ -49,16 +77,16 @@
 | Technology     | Purpose                   |
 | -------------- | ------------------------- |
 | Python 3.13    | Основной язык             |
-| FastAPI        | REST API                  |
+| FastAPI        | REST API framework        |
 | Pydantic       | Валидация и схемы данных  |
 | SQLAlchemy 2.x | ORM                       |
 | SQLite         | База данных               |
 | aiosqlite      | Асинхронный SQLite driver |
 | Uvicorn        | ASGI server               |
 | PyJWT          | Работа с JWT              |
-| HTTPX          | HTTP-клиент для тестов    |
+| HTTPX          | HTTP-клиент               |
 | Pytest         | Тестирование              |
-| pytest-asyncio | Асинхронное тестирование  |
+| pytest-asyncio | Асинхронные тесты         |
 | Docker         | Контейнеризация           |
 | GitHub Actions | CI                        |
 
@@ -100,7 +128,13 @@ FastAPI_vaccines/
 ├── tests/
 │   ├── api_test.py
 │   ├── config.py
-│   └── test_api.py
+│   ├── conftest.py
+│   ├── test_users.py
+│   ├── test_vaccines.py
+│   ├── test_vaccines_create.py
+│   ├── test_vaccines_delete.py
+│   ├── test_vaccines_read.py
+│   └── test_vaccines_update.py
 │
 ├── .github/
 │   └── workflows/
@@ -117,101 +151,122 @@ FastAPI_vaccines/
 
 ## Архитектура приложения
 
-Проект построен с разделением ответственности:
+Приложение разделено на несколько логических компонентов:
 
-**`routers`**
-
-HTTP endpoints и обработка запросов FastAPI.
-
-**`schemas`**
-
-Pydantic-модели для валидации входных и выходных данных.
-
-**`db_models`**
-
-SQLAlchemy ORM-модели базы данных.
-
-**`repository`**
-
-Работа с данными и операции над сущностями.
-
-**`service`**
-
-Бизнес-логика приложения.
-
-**`auth`**
-
-Компоненты авторизации и получения текущего пользователя.
-
-**`database`**
-
-Создание async engine и работа с `AsyncSession`.
+```text
+Client
+  │
+  │ HTTP + JWT
+  ▼
+┌─────────────────────┐
+│       FastAPI       │
+├─────────────────────┤
+│      Routers        │
+├─────────────────────┤
+│ Authentication      │
+├─────────────────────┤
+│     Repository      │
+├─────────────────────┤
+│    SQLAlchemy       │
+└──────────┬──────────┘
+           │
+           ▼
+        SQLite
+```
 
 ---
 
 ## Модель данных
 
-Модель вакцинации содержит информацию о заболевании, вакцине, дозе, датах вакцинации, производителе и месте проведения вакцинации.
+Основная сущность приложения — `Vaccine`.
 
-### Fields
+Запись содержит информацию о вакцинации и принадлежит конкретному пользователю.
 
 | Field              | Type      | Required | Description                             |
-| ------------------ | --------- | :------: | --------------------------------------- |
-| `id`               | `integer` |     —    | Уникальный идентификатор записи         |
-| `disease`          | `string`  |     ✅    | Заболевание                             |
-| `vaccine_name`     | `string`  |     ✅    | Название вакцины                        |
-| `dose_number`      | `string`  |     ✅    | Номер дозы                              |
-| `vaccination_date` | `date`    |     ✅    | Дата вакцинации                         |
-| `expiration_date`  | `date`    |     ❌    | Дата окончания действия / срок годности |
-| `type_vaccine`     | `string`  |     ✅    | Тип вакцины                             |
-| `lot`              | `string`  |     ✅    | Номер партии                            |
-| `manufacturer`     | `string`  |     ✅    | Производитель                           |
-| `clinic`           | `string`  |     ✅    | Медицинская организация / клиника       |
-| `country`          | `string`  |     ✅    | Страна                                  |
-| `city`             | `string`  |     ✅    | Город                                   |
-| `notes`            | `string`  |     ❌    | Дополнительные заметки                  |
-
+| ------------------ | --------- | -------: | --------------------------------------- |
+| `id`               | `integer` |        — | Уникальный идентификатор                |
+| `disease`          | `string`  |        ✅ | Заболевание                             |
+| `vaccine_name`     | `string`  |        ✅ | Название вакцины                        |
+| `dose_number`      | `string`  |        ✅ | Номер дозы                              |
+| `vaccination_date` | `date`    |        ✅ | Дата вакцинации                         |
+| `expiration_date`  | `date`    |        ❌ | Дата окончания действия / срок годности |
+| `type_vaccine`     | `string`  |        ✅ | Тип вакцины                             |
+| `lot`              | `string`  |        ✅ | Номер партии                            |
+| `manufacturer`     | `string`  |        ✅ | Производитель                           |
+| `clinic`           | `string`  |        ✅ | Медицинская организация                 |
+| `country`          | `string`  |        ✅ | Страна                                  |
+| `city`             | `string`  |        ✅ | Город                                   |
+| `notes`            | `string`  |        ❌ | Дополнительные заметки                  |
+| `user_id`          | `integer` |        — | Владелец записи                         |
 ---
 
 ## 🔌 API Endpoints
 
 ### Vaccinations
 
-| Method   | Endpoint                 | Description                   |
-| -------- | ------------------------ | ----------------------------- |
-| `GET`    | `/vaccines`              | Получить список вакцинаций    |
-| `GET`    | `/vaccines/{vaccine_id}` | Получить вакцинацию по ID     |
-| `POST`   | `/vaccines`              | Создать вакцинацию            |
-| `PUT`    | `/vaccines/{vaccine_id}` | Полностью обновить вакцинацию |
-| `PATCH`  | `/vaccines/{vaccine_id}` | Частично обновить вакцинацию  |
-| `DELETE` | `/vaccines/{vaccine_id}` | Удалить вакцинацию            |
+Все endpoints вакцинаций требуют авторизации.
+
+| Method   | Endpoint                 | Description                                        |
+| -------- | ------------------------ |----------------------------------------------------|
+| `GET`    | `/vaccines`              | Возвращает список вакцинаций текущего пользователя |
+| `GET`    | `/vaccines/{vaccine_id}` | Получить вакцинацию по ID. Если запись не существует или принадлежит другому пользователю, она недоступна текущему пользователю|
+| `POST`   | `/vaccines`              | Создаёт новую запись вакцинации для текущего пользователя|
+| `PUT`    | `/vaccines/{vaccine_id}` | Полностью обновить вакцинацию|
+| `PATCH`  | `/vaccines/{vaccine_id}` | Позволяет изменить только необходимые поля|
+| `DELETE` | `/vaccines/{vaccine_id}` | Удалить вакцинацию текущего пользователя|
+
+Пример запроса для `POST`:
+
+```json
+{
+  "disease": "Hepatitis B",
+  "vaccine_name": "Engerix-B",
+  "dose_number": "1",
+  "vaccination_date": "2026-08-20",
+  "expiration_date": null,
+  "type_vaccine": "Recombinant",
+  "lot": "ABC123",
+  "manufacturer": "GSK",
+  "clinic": "City Clinic",
+  "country": "Germany",
+  "city": "Frankfurt",
+  "notes": "First dose"
+}
+```
 
 ### Users
 
-| Method | Endpoint      | Description                           |
-| ------ | ------------- | ------------------------------------- |
-| `GET`  | `/users/user` | Получить данные текущего пользователя |
+| Method | Endpoint    | Description                           |
+|--------|-------------|---------------------------------------|
+| `GET`  | `/users/me` | Получить данные текущего пользователя |
+| `Post` | `/users/me` | Создание нового пользователя          |
 
 ---
 
-## База данных
+# 🔐 Аутентификация
+
+API использует Bearer JWT authentication.
+
+Приложение получает OIDC configuration и JWKS от Keycloak и использует их для проверки JWT.
+
+# База данных
 
 В текущей версии используется **SQLite**.
 
 Работа с базой данных построена на:
 
-* SQLAlchemy Async Engine
-* `AsyncSession`
-* `aiosqlite`
-* SQLAlchemy ORM
+* SQLAlchemy 2.x;
+* `AsyncEngine`;
+* `AsyncSession`;
+* `aiosqlite`;
+* SQLAlchemy ORM;
 * Repository pattern
 
-Основная ORM-модель вакцинации определена в `VaccineBase`. Она содержит `id` и 13 полей данных вакцинации.
-
+Работа с database выполняется асинхронно.
 
 ---
 
-## Тестирование
+# Тестирование
 
 🧪 Testing
 
@@ -228,6 +283,10 @@ SQLAlchemy ORM-модели базы данных.
 
 ```text
 tests/
+├── config.py
+├── conftest.py
+├── test_users.py
+├── test_vaccines.py
 ├── test_vaccines_create.py
 ├── test_vaccines_read.py
 ├── test_vaccines_update.py
@@ -238,27 +297,19 @@ tests/
 
 ---
 
-## Планируемые улучшения
+# Планируемые улучшения
 
-* [x] CRUD operations
-* [x] Async SQLite
-* [x] SQLAlchemy Repository / Service layer
-* [x] PATCH endpoint
-* [x] Docker
-* [x] Automated API tests
-* [x] GitHub Actions
-* [x] Authentication foundation
-* [ ] Полноценная авторизация пользователей
-* [ ] Привязка вакцинаций к пользователю
-* [ ] PostgreSQL
-* [ ] Alembic migrations
-* [ ] Полноценная пагинация
-* [ ] Поиск по заболеванию
-* [ ] Фильтрация и сортировка
-* [ ] Расширение negative API tests
-* [ ] Увеличение test coverage
-* [ ] Улучшение OpenAPI response examples
-* [ ] Production-ready configuration
+* полноценная pagination;
+* поиск по заболеванию;
+* фильтрация и сортировка;
+* PostgreSQL;
+* Alembic migrations;
+* расширение security tests;
+* увеличение test coverage;
+* улучшение OpenAPI examples;
+* дальнейшее разделение business logic и repository layer;
+* production-ready configuration;
+* улучшение Docker setup.
 ---
 
 ## 🎯 Project Goals
