@@ -1,8 +1,8 @@
 from datetime import date
 import pytest_asyncio
 
-from .config import test_db
-from app_vaccines.models.db_models import Vaccine, User
+from .config import test_db, test_user
+from app_vaccines.models.db_models import Vaccine
 
 
 @pytest_asyncio.fixture
@@ -23,9 +23,8 @@ async def vaccine_test_data():
     }
 
 @pytest_asyncio.fixture
-async def vaccine_test(vaccine_test_data):
-    # Пока заглушка с пользователем
-    return Vaccine(**vaccine_test_data, user_id = 1)
+async def vaccine_test(vaccine_test_data, test_user):
+    return Vaccine( **vaccine_test_data, user_id=test_user.id)
 
 @pytest_asyncio.fixture
 async def vaccine_in_db(test_db, vaccine_test):
