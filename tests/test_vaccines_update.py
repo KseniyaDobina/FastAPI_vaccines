@@ -49,6 +49,10 @@ async def test_put_vaccine(authenticated_client, vaccine_in_db, test_db, vaccine
     assert updated_vaccine.country == "Germany"
     assert updated_vaccine.city == "Frankfurt am Main"
     assert updated_vaccine.notes == "Сезонная вакцинация против гриппа"
+    assert data["id"] == vaccine_in_db.id
+    assert data["vaccine_name"] == vaccine_test_new_data["vaccine_name"]
+    assert data["manufacturer"] == vaccine_test_new_data["manufacturer"]
+    assert data["clinic"] == vaccine_test_new_data["clinic"]
 
 @pytest.mark.asyncio
 async def test_put_vaccine_not_found(authenticated_client, vaccine_test_new_data):

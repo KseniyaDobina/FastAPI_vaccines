@@ -29,6 +29,9 @@ async def test_delete_vaccine(authenticated_client, vaccine_in_db, test_db):
 
     assert deleted_vaccine is None
 
+    get_response = await authenticated_client.get(f"/vaccines/{vaccine_id}")
+    assert get_response.status_code == 404
+
 @pytest.mark.asyncio
 async def test_delete_vaccine_not_found(authenticated_client):
     """

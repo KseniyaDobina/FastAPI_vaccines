@@ -41,6 +41,7 @@ async def test_get_vaccine(authenticated_client, vaccine_in_db):
     assert data["country"] == "Germany"
     assert data["city"] == "Frankfurt am Main"
     assert data["notes"] == "Вакцинация проведена без осложнений"
+    assert data["id"] == vaccine_in_db.id
 
 @pytest.mark.asyncio
 async def test_get_vaccine_not_found(authenticated_client):
