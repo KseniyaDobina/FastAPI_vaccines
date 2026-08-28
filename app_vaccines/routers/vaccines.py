@@ -1,11 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app_vaccines.auth.dependencies import get_current_user
 from app_vaccines.models.database import get_session
-from app_vaccines.models.repository import VaccineRepository, VaccineService
-from app_vaccines.models.schemas import (
-    VaccineCreate, VaccineUpdate, VaccineAPIResponse, ListVaccineUpdateAPIResponse, MessageAPIResponse
-)
+from app_vaccines.models.repository import VaccineRepository, UserRepository
+from app_vaccines.models.schemas import VaccineCreate, VaccineUpdate, VaccineID, MessageAPIResponse, CurrentUser
 from app_vaccines.routers import depends
 
 router = APIRouter(
@@ -13,70 +12,119 @@ router = APIRouter(
     tags=["Вакцины"]
 )
 
-@router.get("", response_model=ListVaccineUpdateAPIResponse)
-async def get_all_vaccines(session: AsyncSession = Depends(get_session), pagination: dict = Depends(depends.pagination_parameters)):
+@router.get("", response_model=list[VaccineID])
+async def get_all_vaccines(
+        session: AsyncSession = Depends(get_session),
+        pagination: dict = Depends(depends.pagination_parameters),
+        current_user: CurrentUser = Depends(get_current_user)):
     """
     Получение списка всех вакцин
     """
-    # skip = await pagination["skip"]
-    # limit = await pagination["limit"]
-    vaccines = await VaccineRepository.get_vaccines(session)
-    return {"message": "Список вакцин",
-            # "skip": skip,
-            # "limit": limit,
-            "vaccines": vaccines}
+    user_id = await UserRepository.get_user(current_user, session)
 
-@router.post("", status_code=status.HTTP_201_CREATED, response_model=VaccineAPIResponse)
-async def create_vaccine(vaccine: VaccineCreate, session: AsyncSession = Depends(get_session)):
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Пользователь не создан в сервисе, нужно его создать в users")
+
+    skip = pagination["skip"]
+    limit = pagination["limit"]
+    vaccines = await VaccineRepository.get_vaccines(user_id, skip, limit, session)
+
+    return vaccines
+
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=VaccineID)
+async def create_vaccine(
+        vaccine: VaccineCreate,
+        current_user: CurrentUser = Depends(get_current_user),
+        session: AsyncSession = Depends(get_session)):
     """
     Создание записи о новой вакцинации
     """
-    new_vaccine = await VaccineService.add_vaccine(vaccine, session)
-    return {"message": f"Добавлена вакцина {new_vaccine.id}",
-            "vaccine": new_vaccine}
+    user_id = await UserRepository.get_user(current_user, session)
 
-@router.get("/{vaccine_id}", response_model=VaccineAPIResponse)
-async def get_vaccine(vaccine_id: int, session: AsyncSession = Depends(get_session)):
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Пользователь не создан в сервисе, нужно его создать в users")
+
+    new_vaccine = await VaccineRepository.add_vaccine(vaccine, user_id, session)
+
+    return new_vaccine
+
+@router.get("/{vaccine_id}", response_model=VaccineID)
+async def get_vaccine(
+        vaccine_id: int,
+        current_user: CurrentUser = Depends(get_current_user),
+        session: AsyncSession = Depends(get_session)):
     """
     Поиск вакцинации по id
     """
-    vaccine = await VaccineRepository.get_vaccine_by_id(vaccine_id, session)
-    if vaccine is not None:
-        return {"message": f"Информация о вакцине №{vaccine.id}",
-                "vaccine": vaccine}
+    user_id = await UserRepository.get_user(current_user, session)
 
-    raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Пользователь не создан в сервисе, нужно его создать в users")
 
-@router.put("/{vaccine_id}", response_model=VaccineAPIResponse)
-async def put_vaccine(vaccine_id: int, vaccine: VaccineCreate, session: AsyncSession = Depends(get_session)):
+    vaccine = await VaccineRepository.get_vaccine_by_id(vaccine_id, user_id, session)
+
+    if vaccine is None:
+        raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
+
+    return vaccine
+
+@router.put("/{vaccine_id}", response_model=VaccineID)
+async def put_vaccine(
+        vaccine_id: int,
+        vaccine: VaccineCreate,
+        current_user: CurrentUser = Depends(get_current_user),
+        session: AsyncSession = Depends(get_session)):
     """
     Обновление информации о вакцинации
     """
-    new_vaccine_db = await VaccineService.update_vaccine(vaccine_id, vaccine, session)
-    if new_vaccine_db is not None:
-        return {"message": f"Информация о вакцине изменена",
-                "vaccine": new_vaccine_db}
+    user_id = await UserRepository.get_user(current_user, session)
 
-    raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Пользователь не создан в сервисе, нужно его создать в users")
 
-@router.patch("/{vaccine_id}", response_model=VaccineAPIResponse)
-async def patch_vaccine(vaccine_id: int, vaccine: VaccineUpdate, session: AsyncSession = Depends(get_session)):
+    new_vaccine_db = await VaccineRepository.update_vaccine(vaccine_id, vaccine, user_id, session)
+
+    if new_vaccine_db is None:
+        raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
+
+    return new_vaccine_db
+
+@router.patch("/{vaccine_id}", response_model=VaccineID)
+async def patch_vaccine(
+        vaccine_id: int,
+        vaccine: VaccineUpdate,
+        current_user: CurrentUser = Depends(get_current_user),
+        session: AsyncSession = Depends(get_session)):
     """
     Обновление определенной информации о вакцине, можно указать только конкретное поле
     """
-    updated_vaccine = await VaccineService.update_vaccine_patch(vaccine_id, vaccine, session)
+    user_id = await UserRepository.get_user(current_user, session)
+
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Пользователь не создан в сервисе, нужно его создать в users")
+
+    updated_vaccine = await VaccineRepository.update_vaccine(vaccine_id, vaccine, user_id, session)
+
     if updated_vaccine is None:
         raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
-    return {"message": f"Информация о вакцине №{updated_vaccine.id} изменена",
-            "vaccine": updated_vaccine}
+    return updated_vaccine
 
 @router.delete("/{vaccine_id}", response_model=MessageAPIResponse)
-async def delete_vaccine(vaccine_id: int, session: AsyncSession = Depends(get_session)):
+async def delete_vaccine(
+        vaccine_id: int,
+        current_user: CurrentUser = Depends(get_current_user),
+        session: AsyncSession = Depends(get_session)):
     """
     Удаление записи о вакцинации
     """
-    result = await VaccineService.delete_vaccine(vaccine_id, session)
+    user_id = await UserRepository.get_user(current_user, session)
+
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Пользователь не создан в сервисе, нужно его создать в users")
+
+    result = await VaccineRepository.delete_vaccine(vaccine_id, user_id, session)
+
     if result:
         return {"message": f"Удалена вакцина №{vaccine_id}"}
 

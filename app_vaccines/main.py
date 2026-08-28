@@ -2,24 +2,27 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app_vaccines.models.database import create_database, delete_database
-from app_vaccines.routers import vaccines
+from app_vaccines.routers import vaccines, users
 
 @asynccontextmanager
 async def lifespan_async(application: FastAPI):
     await create_database()
     yield
-    # await delete_database() Пока ничего удалять не будем
+    # Пока ничего не удаляем
+    # await delete_database()
 
 app = FastAPI(
     title="API для отслеживания своих вакцинаций",
     description="API создано для внесения информации о своих вакцинациях. "
-                "Нет связей с медицинской организацией. Введеные данные не проверяются в системах ОМС или ДМС.",
+                "Нет связей с медицинской организацией. Введеные данные не проверяются в системах ОМС или ДМС."
+                " После аутентификации, чтобы получить доступ к сервису, нужно создать пользователя в сервисе user.",
     version="0.0.1",
-    lifespan=lifespan_async
+    lifespan=lifespan_async,
+    swagger_ui_init_oauth={
+        "clientId": "fastapi",
+        "usePkceWithAuthorizationCodeGrant": True,
+    }
 )
 
 app.include_router(vaccines.router)
-
-@app.get("/")
-async def read_root():
-    return {"message": "http://127.0.0.1:8000/docs"}
+app.include_router(users.router)

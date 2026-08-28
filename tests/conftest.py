@@ -1,20 +1,30 @@
-import pytest
+from datetime import date
 import pytest_asyncio
-from app_vaccines.models.db_models import VaccineBase
+
+from .config import test_db, test_user
+from app_vaccines.models.db_models import Vaccine
+
 
 @pytest_asyncio.fixture
 async def vaccine_test_data():
     return {
         "disease": "COVID-19",
-        "vaccine_name": "Sputnik V",
-        "clinic": "Поликлиника №1",
-        "country": "Россия",
-        "city": "Москва",
+        "vaccine_name": "Comirnaty",
+        "dose_number": "1",
+        "vaccination_date": date(2026, 8, 20),
+        "expiration_date": date(2027, 1, 31),
+        "type_vaccine": "mRNA",
+        "lot": "ABC12345",
+        "manufacturer": "Pfizer-BioNTech",
+        "clinic": "City Medical Center",
+        "country": "Germany",
+        "city": "Frankfurt am Main",
+        "notes": "Вакцинация проведена без осложнений"
     }
 
 @pytest_asyncio.fixture
-async def vaccine_test(vaccine_test_data):
-    return VaccineBase(**vaccine_test_data)
+async def vaccine_test(vaccine_test_data, test_user):
+    return Vaccine( **vaccine_test_data, user_id=test_user.id)
 
 @pytest_asyncio.fixture
 async def vaccine_in_db(test_db, vaccine_test):
@@ -22,3 +32,28 @@ async def vaccine_in_db(test_db, vaccine_test):
     await test_db.commit()
     await test_db.refresh(vaccine_test)
     return vaccine_test
+
+@pytest_asyncio.fixture
+async def vaccine_test_json_data(vaccine_test_data):
+    return {
+        **vaccine_test_data,
+        "vaccination_date": vaccine_test_data["vaccination_date"].isoformat(),
+        "expiration_date": vaccine_test_data["expiration_date"].isoformat(),
+    }
+
+@pytest_asyncio.fixture
+async def vaccine_test_new_data():
+    return {
+        "disease": "Грипп",
+        "vaccine_name": "Vaxigrip Tetra",
+        "dose_number": "1",
+        "vaccination_date": "2026-09-15",
+        "expiration_date": "2027-06-30",
+        "type_vaccine": "Инактивированная, квадривалентная",
+        "lot": "VXT2026A91",
+        "manufacturer": "Sanofi",
+        "clinic": "Frankfurt Medical Center",
+        "country": "Germany",
+        "city": "Frankfurt am Main",
+        "notes": "Сезонная вакцинация против гриппа"
+    }

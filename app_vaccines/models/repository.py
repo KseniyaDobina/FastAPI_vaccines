@@ -1,82 +1,109 @@
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app_vaccines.models.schemas import VaccineCreate, VaccineID, VaccineUpdate
-from app_vaccines.models.db_models import VaccineBase
+from app_vaccines.models.db_models import Vaccine, User
+from app_vaccines.models.schemas import VaccineCreate, VaccineID, VaccineUpdate, CurrentUser, UserResponse
 
 class VaccineRepository:
     """
-    Класс для получения информации о вакцинах
+    Класс для получения информации о вакцинах.
+    Добавления, изменения или удаления вакцин
     """
     @classmethod
-    async def get_vaccines(cls, session: AsyncSession) -> list[VaccineID]:
-        query = select(VaccineBase)
+    async def get_vaccines(cls, user: int, skip: int, limit: int, session: AsyncSession) -> list[VaccineID]:
+        query = select(Vaccine).where(Vaccine.user_id == user).offset(skip).limit(limit)
         result = await session.execute(query)
         vaccine_models = result.scalars().all()
         vaccines = [VaccineID.model_validate(vaccine_model) for vaccine_model in vaccine_models]
         return vaccines
 
     @classmethod
-    async def get_vaccine_by_id(cls, vaccine_id: int, session: AsyncSession):
-        query = select(VaccineBase).where(VaccineBase.id == vaccine_id)
+    async def get_vaccine_by_id(cls, vaccine_id: int, user: int, session: AsyncSession):
+        query = select(Vaccine).where(Vaccine.id == vaccine_id, Vaccine.user_id == user)
         result = await session.execute(query)
         vaccine = result.scalar_one_or_none()
         if vaccine is None:
             return None
         return VaccineID.model_validate(vaccine)
 
-
-class VaccineService:
-    """
-    Класс для добавления, изменения или удаления вакцин
-    """
     @classmethod
-    async def add_vaccine(cls, vaccine: VaccineCreate, session: AsyncSession):
+    async def add_vaccine(cls, vaccine: VaccineCreate, user_id:int, session: AsyncSession) -> VaccineID:
         data = vaccine.model_dump()
-        new_vaccine = VaccineBase(**data)
+        new_vaccine = Vaccine(**data, user_id=user_id)
         session.add(new_vaccine)
         await session.flush()
         await session.commit()
         await session.refresh(new_vaccine)
-        return new_vaccine
+        return VaccineID.model_validate(new_vaccine)
 
     @classmethod
-    async def update_vaccine(cls, vaccine_id: int, vaccine: VaccineCreate, session: AsyncSession):
-        query = update(VaccineBase).where(VaccineBase.id == vaccine_id).values(**vaccine.model_dump())
-        result = await session.execute(query)
-        if result.rowcount == 0:
-            await session.rollback()
-            return None
-
-        await session.commit()
+    async def update_vaccine(
+            cls,
+            vaccine_id: int,
+            vaccine: VaccineCreate | VaccineUpdate,
+            user: int,
+            session: AsyncSession
+    ) -> VaccineID | None:
         result = await session.execute(
-            select(VaccineBase).where(VaccineBase.id == vaccine_id)
+            select(Vaccine).where(Vaccine.id == vaccine_id, Vaccine.user_id == user)
         )
-        updated_db_model = result.scalar_one_or_none()
-        if updated_db_model is None:
-            return None
-        return VaccineID.model_validate(updated_db_model)
-
-    @classmethod
-    async def update_vaccine_patch(cls, vaccine_id: int, vaccine: VaccineUpdate, session: AsyncSession):
-        query = select(VaccineBase).where(VaccineBase.id == vaccine_id)
-        result = await session.execute(query)
         vaccine_db = result.scalar_one_or_none()
+
         if vaccine_db is None:
             return None
-
         update_data = vaccine.model_dump(exclude_unset=True)
+        new_vaccination_date = update_data.get("vaccination_date", vaccine_db.vaccination_date)
+        new_expiration_date = update_data.get("expiration_date", vaccine_db.expiration_date)
+
+        if (
+                new_expiration_date is not None
+                and new_expiration_date <= new_vaccination_date
+        ):
+            raise ValueError("expiration_date должна быть позже, чем vaccination_date")
+
         for field, value in update_data.items():
             setattr(vaccine_db, field, value)
 
         await session.commit()
         await session.refresh(vaccine_db)
+
         return VaccineID.model_validate(vaccine_db)
 
     @classmethod
-    async def delete_vaccine(cls, vaccine_id: int, session: AsyncSession) -> bool:
-        query = delete(VaccineBase).where(VaccineBase.id == vaccine_id)
+    async def delete_vaccine(cls, vaccine_id: int, user:int, session: AsyncSession) -> bool:
+        query = delete(Vaccine).where(Vaccine.id == vaccine_id, Vaccine.user_id == user)
         result = await session.execute(query)
         await session.commit()
         # result.rowcount показывает, сколько строк было затронуто (0 или 1)
         return result.rowcount > 0
+
+
+class UserRepository:
+
+    @classmethod
+    async def get_user(cls, current_user: CurrentUser, session: AsyncSession) -> int | None:
+        result = await session.execute(select(User).where(User.keycloak_id == current_user.sub))
+        user = result.scalar_one_or_none()
+        if user is None:
+            return None
+        return user.id
+
+    @classmethod
+    async def create_user(cls, current_user: CurrentUser, session: AsyncSession) -> UserResponse | None:
+        result = await session.execute(select(User).where(User.keycloak_id == current_user.sub))
+        user = result.scalar_one_or_none()
+
+        if user:
+            return None
+
+        user = User(
+            keycloak_id=current_user.sub,
+            username=current_user.username,
+            email=current_user.email,
+        )
+        session.add(user)
+
+        await session.commit()
+        await session.refresh(user)
+
+        return UserResponse.model_validate(user)
