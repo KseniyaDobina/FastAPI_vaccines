@@ -8,6 +8,9 @@ jobs:
   tests:
     runs-on: ubuntu-latest
 
+    env:
+      PATH_TO_DB: ${{ secrets.PATH_TO_DB }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
