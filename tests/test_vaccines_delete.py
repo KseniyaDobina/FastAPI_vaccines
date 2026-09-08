@@ -5,6 +5,7 @@ from app_vaccines.models.db_models import Vaccine
 from tests.config import client, test_db, authenticated_client, test_user
 from tests.conftest import vaccine_in_db
 
+
 @pytest.mark.asyncio
 async def test_delete_vaccine(authenticated_client, vaccine_in_db, test_db):
     """
@@ -31,6 +32,7 @@ async def test_delete_vaccine(authenticated_client, vaccine_in_db, test_db):
 
     get_response = await authenticated_client.get(f"/vaccines/{vaccine_id}")
     assert get_response.status_code == 404
+
 
 @pytest.mark.asyncio
 async def test_delete_vaccine_not_found(authenticated_client):

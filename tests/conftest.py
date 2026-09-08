@@ -22,9 +22,11 @@ async def vaccine_test_data():
         "notes": "Вакцинация проведена без осложнений"
     }
 
+
 @pytest_asyncio.fixture
 async def vaccine_test(vaccine_test_data, test_user):
-    return Vaccine( **vaccine_test_data, user_id=test_user.id)
+    return Vaccine(**vaccine_test_data, user_id=test_user.id)
+
 
 @pytest_asyncio.fixture
 async def vaccine_in_db(test_db, vaccine_test):
@@ -33,6 +35,7 @@ async def vaccine_in_db(test_db, vaccine_test):
     await test_db.refresh(vaccine_test)
     return vaccine_test
 
+
 @pytest_asyncio.fixture
 async def vaccine_test_json_data(vaccine_test_data):
     return {
@@ -40,6 +43,7 @@ async def vaccine_test_json_data(vaccine_test_data):
         "vaccination_date": vaccine_test_data["vaccination_date"].isoformat(),
         "expiration_date": vaccine_test_data["expiration_date"].isoformat(),
     }
+
 
 @pytest_asyncio.fixture
 async def vaccine_test_new_data():

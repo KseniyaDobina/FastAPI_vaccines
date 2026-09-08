@@ -3,6 +3,7 @@ import pytest
 from .config import client, test_db, authenticated_client, test_user
 from tests.conftest import vaccine_test_json_data
 
+
 @pytest.mark.asyncio
 async def test_post_without_data(authenticated_client):
     """
@@ -12,6 +13,7 @@ async def test_post_without_data(authenticated_client):
     response = await authenticated_client.post("/vaccines")
 
     assert response.status_code == 422
+
 
 @pytest.mark.asyncio
 async def test_post_create_vaccine(authenticated_client, vaccine_test_json_data):
@@ -39,6 +41,7 @@ async def test_post_create_vaccine(authenticated_client, vaccine_test_json_data)
     assert data["city"] == "Frankfurt am Main"
     assert data["notes"] == "Вакцинация проведена без осложнений"
 
+
 @pytest.mark.parametrize(
     "field,value",
     [
@@ -60,12 +63,12 @@ async def test_create_vaccine_min_length_validation(
         field,
         value
 ):
-
     data = vaccine_test_json_data.copy()
     data[field] = value
     response = await authenticated_client.post("/vaccines", json=data)
 
     assert response.status_code == 422
+
 
 @pytest.mark.parametrize(
     "field,length",
@@ -84,10 +87,10 @@ async def test_create_vaccine_min_length_validation(
 )
 @pytest.mark.asyncio
 async def test_create_vaccine_max_length_validation(
-    authenticated_client,
-    vaccine_test_json_data,
-    field,
-    length
+        authenticated_client,
+        vaccine_test_json_data,
+        field,
+        length
 ):
     data = vaccine_test_json_data.copy()
     data[field] = "a" * length
@@ -95,6 +98,7 @@ async def test_create_vaccine_max_length_validation(
     response = await authenticated_client.post("/vaccines", json=data)
 
     assert response.status_code == 422
+
 
 @pytest.mark.asyncio
 async def test_post_create_vaccine_without_notes(authenticated_client, vaccine_test_json_data):
@@ -113,8 +117,9 @@ async def test_post_create_vaccine_without_notes(authenticated_client, vaccine_t
     data = response.json()
     assert data["notes"] is None
 
+
 @pytest.mark.asyncio
-async def test_post_create_vaccine_without_expiration_date(authenticated_client,vaccine_test_json_data):
+async def test_post_create_vaccine_without_expiration_date(authenticated_client, vaccine_test_json_data):
     """
     Проверка создание вакцинации без expiration_date
     """
@@ -130,6 +135,7 @@ async def test_post_create_vaccine_without_expiration_date(authenticated_client,
     data = response.json()
     assert data["expiration_date"] is None
 
+
 @pytest.mark.parametrize(
     "field,value",
     [
@@ -142,18 +148,18 @@ async def test_post_create_vaccine_without_expiration_date(authenticated_client,
 )
 @pytest.mark.asyncio
 async def test_create_vaccine_invalid_date(
-    authenticated_client,
-    vaccine_test_json_data,
-    field,
-    value
+        authenticated_client,
+        vaccine_test_json_data,
+        field,
+        value
 ):
-
     data = vaccine_test_json_data.copy()
     data[field] = value
 
-    response = await authenticated_client.post("/vaccines", json=data )
+    response = await authenticated_client.post("/vaccines", json=data)
 
     assert response.status_code == 422
+
 
 @pytest.mark.parametrize(
     "field",
@@ -172,17 +178,17 @@ async def test_create_vaccine_invalid_date(
 )
 @pytest.mark.asyncio
 async def test_create_vaccine_required_fields(
-    authenticated_client,
-    vaccine_test_json_data,
-    field
+        authenticated_client,
+        vaccine_test_json_data,
+        field
 ):
-
     data = vaccine_test_json_data.copy()
     data.pop(field)
 
-    response = await authenticated_client.post("/vaccines",json=data)
+    response = await authenticated_client.post("/vaccines", json=data)
 
     assert response.status_code == 422
+
 
 @pytest.mark.parametrize(
     "field",
@@ -201,9 +207,9 @@ async def test_create_vaccine_required_fields(
 )
 @pytest.mark.asyncio
 async def test_create_vaccine_none_for_required_fields(
-    authenticated_client,
-    vaccine_test_json_data,
-    field
+        authenticated_client,
+        vaccine_test_json_data,
+        field
 ):
     data = vaccine_test_json_data.copy()
     data[field] = None

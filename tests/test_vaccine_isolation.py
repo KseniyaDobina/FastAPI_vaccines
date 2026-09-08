@@ -5,8 +5,8 @@ from tests.config import client, test_db, authenticated_client, second_user_vacc
 
 @pytest.mark.asyncio
 async def test_user_cannot_get_another_users_vaccine(
-    authenticated_client,
-    second_user_vaccine,
+        authenticated_client,
+        second_user_vaccine,
 ):
     response = await authenticated_client.get(
         f"/vaccines/{second_user_vaccine.id}"
@@ -15,36 +15,12 @@ async def test_user_cannot_get_another_users_vaccine(
     assert response.status_code == 404
     assert response.json()["detail"] == "Данные о вакцинации не найдены"
 
-
-@pytest.mark.asyncio
-async def test_user_cannot_delete_another_users_vaccine(
-    authenticated_client,
-    second_user_vaccine,
-):
-    response = await authenticated_client.delete(
-        f"/vaccines/{second_user_vaccine.id}"
-    )
-
-    assert response.status_code == 404
-    assert response.json()["detail"] == "Данные о вакцинации не найдены"
-
-@pytest.mark.asyncio
-async def test_user_cannot_get_another_users_vaccine(
-    authenticated_client,
-    second_user_vaccine,
-):
-    response = await authenticated_client.get(
-        f"/vaccines/{second_user_vaccine.id}"
-    )
-
-    assert response.status_code == 404
-    assert response.json()["detail"] == "Данные о вакцинации не найдены"
 
 @pytest.mark.asyncio
 async def test_user_cannot_update_another_users_vaccine(
-    authenticated_client,
-    second_user_vaccine,
-    vaccine_test_new_data,
+        authenticated_client,
+        second_user_vaccine,
+        vaccine_test_new_data,
 ):
     original_name = second_user_vaccine.vaccine_name
 
@@ -58,10 +34,11 @@ async def test_user_cannot_update_another_users_vaccine(
 
     assert second_user_vaccine.vaccine_name == original_name
 
+
 @pytest.mark.asyncio
 async def test_user_cannot_patch_another_users_vaccine(
-    authenticated_client,
-    second_user_vaccine,
+        authenticated_client,
+        second_user_vaccine,
 ):
     original_notes = second_user_vaccine.notes
 
@@ -77,10 +54,11 @@ async def test_user_cannot_patch_another_users_vaccine(
 
     assert second_user_vaccine.notes == original_notes
 
+
 @pytest.mark.asyncio
 async def test_user_cannot_delete_another_users_vaccine(
-    authenticated_client,
-    second_user_vaccine,
+        authenticated_client,
+        second_user_vaccine,
 ):
     vaccine_id = second_user_vaccine.id
 

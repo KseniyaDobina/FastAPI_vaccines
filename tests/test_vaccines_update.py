@@ -5,6 +5,7 @@ from app_vaccines.models.db_models import Vaccine
 from tests.config import client, test_db, authenticated_client, test_user
 from tests.conftest import vaccine_in_db, vaccine_test_new_data
 
+
 @pytest.mark.asyncio
 async def test_put_vaccine(authenticated_client, vaccine_in_db, test_db, vaccine_test_new_data):
     """
@@ -12,7 +13,7 @@ async def test_put_vaccine(authenticated_client, vaccine_in_db, test_db, vaccine
     """
 
     vaccine_id = vaccine_in_db.id
-    response = await authenticated_client.put(f"/vaccines/{vaccine_id}",json=vaccine_test_new_data)
+    response = await authenticated_client.put(f"/vaccines/{vaccine_id}", json=vaccine_test_new_data)
 
     assert response.status_code == 200
 
@@ -54,6 +55,7 @@ async def test_put_vaccine(authenticated_client, vaccine_in_db, test_db, vaccine
     assert data["manufacturer"] == vaccine_test_new_data["manufacturer"]
     assert data["clinic"] == vaccine_test_new_data["clinic"]
 
+
 @pytest.mark.asyncio
 async def test_put_vaccine_not_found(authenticated_client, vaccine_test_new_data):
     """
@@ -64,6 +66,7 @@ async def test_put_vaccine_not_found(authenticated_client, vaccine_test_new_data
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Данные о вакцинации не найдены"
+
 
 @pytest.mark.asyncio
 async def test_patch_vaccine(authenticated_client, vaccine_in_db, test_db):
@@ -110,6 +113,7 @@ async def test_patch_vaccine(authenticated_client, vaccine_in_db, test_db):
     assert updated_vaccine.country == vaccine_in_db.country
     assert updated_vaccine.notes == vaccine_in_db.notes
 
+
 @pytest.mark.asyncio
 async def test_patch_vaccine_multiple_fields(authenticated_client, vaccine_in_db):
     """
@@ -144,6 +148,7 @@ async def test_patch_vaccine_multiple_fields(authenticated_client, vaccine_in_db
     assert data["country"] == vaccine_in_db.country
     assert data["notes"] == vaccine_in_db.notes
 
+
 @pytest.mark.asyncio
 async def test_patch_vaccine_not_found(authenticated_client):
     response = await authenticated_client.patch(
@@ -156,27 +161,28 @@ async def test_patch_vaccine_not_found(authenticated_client):
     assert response.status_code == 404
     assert response.json()["detail"] == "Данные о вакцинации не найдены"
 
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [
-        ("disease", "ab"),           # min=3
-        ("vaccine_name", "ab"),      # min=3
-        ("dose_number", ""),         # min=1
-        ("type_vaccine", ""),        # min=1
-        ("lot", ""),                 # min=1
-        ("manufacturer", "a"),       # min=2
-        ("clinic", "ab"),            # min=3
-        ("country", "a"),            # min=2
-        ("city", "a"),               # min=2
-        ("notes", ""),               # min=1
+        ("disease", "ab"),  # min=3
+        ("vaccine_name", "ab"),  # min=3
+        ("dose_number", ""),  # min=1
+        ("type_vaccine", ""),  # min=1
+        ("lot", ""),  # min=1
+        ("manufacturer", "a"),  # min=2
+        ("clinic", "ab"),  # min=3
+        ("country", "a"),  # min=2
+        ("city", "a"),  # min=2
+        ("notes", ""),  # min=1
     ],
 )
 @pytest.mark.asyncio
 async def test_patch_rejects_too_short_string_fields(
-    authenticated_client,
-    vaccine_in_db,
-    field,
-    value,
+        authenticated_client,
+        vaccine_in_db,
+        field,
+        value,
 ):
     response = await authenticated_client.patch(f"/vaccines/{vaccine_in_db.id}", json={field: value})
 
@@ -184,6 +190,7 @@ async def test_patch_rejects_too_short_string_fields(
 
     errors = response.json()["detail"]
     assert any(error["loc"][-1] == field for error in errors)
+
 
 @pytest.mark.parametrize(
     ("field", "value"),
@@ -202,10 +209,10 @@ async def test_patch_rejects_too_short_string_fields(
 )
 @pytest.mark.asyncio
 async def test_patch_rejects_too_long_string_fields(
-    authenticated_client,
-    vaccine_in_db,
-    field,
-    value,
+        authenticated_client,
+        vaccine_in_db,
+        field,
+        value,
 ):
     response = await authenticated_client.patch(f"/vaccines/{vaccine_in_db.id}", json={field: value})
 
@@ -214,32 +221,34 @@ async def test_patch_rejects_too_long_string_fields(
     errors = response.json()["detail"]
     assert any(error["loc"][-1] == field for error in errors)
 
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [
-        ("disease", "abc"),                  # 3
-        ("vaccine_name", "abc"),             # 3
-        ("dose_number", "1"),                # 1
-        ("type_vaccine", "a"),               # 1
-        ("lot", "a"),                        # 1
-        ("manufacturer", "ab"),              # 2
-        ("clinic", "abc"),                   # 3
-        ("country", "ab"),                   # 2
-        ("city", "ab"),                      # 2
-        ("notes", "a"),                      # 1
+        ("disease", "abc"),  # 3
+        ("vaccine_name", "abc"),  # 3
+        ("dose_number", "1"),  # 1
+        ("type_vaccine", "a"),  # 1
+        ("lot", "a"),  # 1
+        ("manufacturer", "ab"),  # 2
+        ("clinic", "abc"),  # 3
+        ("country", "ab"),  # 2
+        ("city", "ab"),  # 2
+        ("notes", "a"),  # 1
     ],
 )
 @pytest.mark.asyncio
 async def test_patch_accepts_minimum_string_lengths(
-    authenticated_client,
-    vaccine_in_db,
-    field,
-    value,
+        authenticated_client,
+        vaccine_in_db,
+        field,
+        value,
 ):
     response = await authenticated_client.patch(f"/vaccines/{vaccine_in_db.id}", json={field: value})
 
     assert response.status_code == 200
     assert response.json()[field] == value
+
 
 @pytest.mark.parametrize(
     ("field", "value"),
@@ -258,15 +267,16 @@ async def test_patch_accepts_minimum_string_lengths(
 )
 @pytest.mark.asyncio
 async def test_patch_accepts_maximum_string_lengths(
-    authenticated_client,
-    vaccine_in_db,
-    field,
-    value,
+        authenticated_client,
+        vaccine_in_db,
+        field,
+        value,
 ):
     response = await authenticated_client.patch(f"/vaccines/{vaccine_in_db.id}", json={field: value})
 
     assert response.status_code == 200
     assert response.json()[field] == value
+
 
 @pytest.mark.parametrize(
     "field",
@@ -274,9 +284,9 @@ async def test_patch_accepts_maximum_string_lengths(
 )
 @pytest.mark.asyncio
 async def test_patch_rejects_invalid_date_format(
-    authenticated_client,
-    vaccine_in_db,
-    field,
+        authenticated_client,
+        vaccine_in_db,
+        field,
 ):
     response = await authenticated_client.patch(f"/vaccines/{vaccine_in_db.id}", json={field: "not-a-date"})
 
@@ -285,10 +295,11 @@ async def test_patch_rejects_invalid_date_format(
     errors = response.json()["detail"]
     assert any(error["loc"][-1] == field for error in errors)
 
+
 @pytest.mark.asyncio
 async def test_patch_rejects_expiration_date_before_vaccination_date(
-    authenticated_client,
-    vaccine_in_db,
+        authenticated_client,
+        vaccine_in_db,
 ):
     response = await authenticated_client.patch(
         f"/vaccines/{vaccine_in_db.id}",
@@ -303,10 +314,11 @@ async def test_patch_rejects_expiration_date_before_vaccination_date(
         for error in response.json()["detail"]
     )
 
+
 @pytest.mark.asyncio
 async def test_patch_rejects_equal_vaccination_and_expiration_dates(
-    authenticated_client,
-    vaccine_in_db,
+        authenticated_client,
+        vaccine_in_db,
 ):
     response = await authenticated_client.patch(
         f"/vaccines/{vaccine_in_db.id}",
@@ -320,10 +332,11 @@ async def test_patch_rejects_equal_vaccination_and_expiration_dates(
         for error in response.json()["detail"]
     )
 
+
 @pytest.mark.asyncio
 async def test_patch_accepts_valid_dates(
-    authenticated_client,
-    vaccine_in_db,
+        authenticated_client,
+        vaccine_in_db,
 ):
     response = await authenticated_client.patch(
         f"/vaccines/{vaccine_in_db.id}",
