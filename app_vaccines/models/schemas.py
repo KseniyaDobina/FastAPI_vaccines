@@ -1,6 +1,7 @@
 from datetime import date
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+
 class VaccineCreate(BaseModel):
     disease: str = Field(min_length=3, max_length=100)
     vaccine_name: str = Field(min_length=3, max_length=100)
@@ -27,12 +28,14 @@ class VaccineCreate(BaseModel):
 
         return self
 
+
 class VaccineID(VaccineCreate):
     id: int
     user_id: int
     # date_created_note: date
     # date_change_note: date
     model_config = ConfigDict(from_attributes=True)
+
 
 class VaccineUpdate(BaseModel):
     disease: str | None = Field(default=None, min_length=3, max_length=100)
@@ -61,13 +64,16 @@ class VaccineUpdate(BaseModel):
 
         return self
 
+
 class MessageAPIResponse(BaseModel):
     message: str
+
 
 class CurrentUser(BaseModel):
     sub: str
     username: str | None = None
     email: str | None = None
+
 
 class UserResponse(BaseModel):
     id: int

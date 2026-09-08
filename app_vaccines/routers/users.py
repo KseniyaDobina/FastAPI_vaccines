@@ -6,7 +6,6 @@ from app_vaccines.models.database import get_session
 from app_vaccines.models.schemas import CurrentUser
 from app_vaccines.models.repository import VaccineRepository, UserRepository
 
-
 router = APIRouter(
     prefix="/users",
     tags=["Пользователи"]
@@ -16,6 +15,7 @@ router = APIRouter(
 @router.get("/me")
 async def get_user(session: AsyncSession = Depends(get_session), current_user: dict = Depends(get_current_user)):
     return current_user
+
 
 @router.post("/me", status_code=status.HTTP_201_CREATED)
 async def create_user(

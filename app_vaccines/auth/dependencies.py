@@ -1,23 +1,17 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2AuthorizationCodeBearer
-from fastapi.security import HTTPAuthorizationCredentials
-from fastapi.security import HTTPBearer
 
 from app_vaccines.auth.keycloak import decode_token
+from app_vaccines.config.settings import Settings
 from app_vaccines.models.schemas import CurrentUser
-
-
-KEYCLOAK_URL = "http://localhost:8080"
-REALM = "vaccines"
-CLIENT_ID = "fastapi"
 
 oauth2_scheme = OAuth2AuthorizationCodeBearer(
     authorizationUrl=(
-        f"{KEYCLOAK_URL}/realms/{REALM}"
+        f"{Settings.KEYCLOAK_URL}/realms/{Settings.KEYCLOAK_REALM}"
         "/protocol/openid-connect/auth"
     ),
     tokenUrl=(
-        f"{KEYCLOAK_URL}/realms/{REALM}"
+        f"{Settings.KEYCLOAK_URL}/realms/{Settings.KEYCLOAK_REALM}"
         "/protocol/openid-connect/token"
     ),
     scopes={},
@@ -25,9 +19,8 @@ oauth2_scheme = OAuth2AuthorizationCodeBearer(
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+        token: str = Depends(oauth2_scheme),
 ) -> CurrentUser:
-
     try:
         payload = decode_token(token)
     except Exception:

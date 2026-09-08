@@ -12,6 +12,7 @@ router = APIRouter(
     tags=["Вакцины"]
 )
 
+
 @router.get("", response_model=list[VaccineID])
 async def get_all_vaccines(
         session: AsyncSession = Depends(get_session),
@@ -31,6 +32,7 @@ async def get_all_vaccines(
 
     return vaccines
 
+
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=VaccineID)
 async def create_vaccine(
         vaccine: VaccineCreate,
@@ -47,6 +49,7 @@ async def create_vaccine(
     new_vaccine = await VaccineRepository.add_vaccine(vaccine, user_id, session)
 
     return new_vaccine
+
 
 @router.get("/{vaccine_id}", response_model=VaccineID)
 async def get_vaccine(
@@ -67,6 +70,7 @@ async def get_vaccine(
         raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
     return vaccine
+
 
 @router.put("/{vaccine_id}", response_model=VaccineID)
 async def put_vaccine(
@@ -89,6 +93,7 @@ async def put_vaccine(
 
     return new_vaccine_db
 
+
 @router.patch("/{vaccine_id}", response_model=VaccineID)
 async def patch_vaccine(
         vaccine_id: int,
@@ -109,6 +114,7 @@ async def patch_vaccine(
         raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
 
     return updated_vaccine
+
 
 @router.delete("/{vaccine_id}", response_model=MessageAPIResponse)
 async def delete_vaccine(
