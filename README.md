@@ -30,6 +30,7 @@ API поддерживает полный CRUD для записей о вакц
 
 * получение списка вакцинаций;
 * получение вакцинации по ID;
+* пагинация;
 * создание новой записи;
 * полное обновление записи через `PUT`;
 * частичное обновление через `PATCH`;
@@ -107,7 +108,6 @@ FastAPI_vaccines/
 │   │
 │   ├── config/
 │   │   ├── __init__.py
-│   │   ├── .env.example
 │   │   └── settings.py
 │   │
 │   ├── models/
@@ -133,6 +133,7 @@ FastAPI_vaccines/
 │   ├── test_vaccines.py
 │   ├── test_vaccines_create.py
 │   ├── test_vaccines_delete.py
+│   ├── test_vaccines_isolation.py
 │   ├── test_vaccines_read.py
 │   └── test_vaccines_update.py
 │
@@ -140,12 +141,13 @@ FastAPI_vaccines/
 │   └── workflows/
 │       └── tests.yml
 │
-├── Dockerfile
-├── docker-compose.yml
 ├── .dockerignore
+├── .env.example
 ├── .gitignore
-├── requirements.txt
-└── README.md
+├── docker-compose.yml
+├── Dockerfile
+├── README.md
+└── requirements.txt
 ```
 ---
 
@@ -288,6 +290,7 @@ tests/
 ├── test_users.py
 ├── test_vaccines.py
 ├── test_vaccines_create.py
+├── test_vaccines_isolation.py
 ├── test_vaccines_read.py
 ├── test_vaccines_update.py
 └── test_vaccines_delete.py
@@ -299,7 +302,6 @@ tests/
 
 # Планируемые улучшения
 
-* полноценная pagination;
 * поиск по заболеванию;
 * фильтрация и сортировка;
 * PostgreSQL;
