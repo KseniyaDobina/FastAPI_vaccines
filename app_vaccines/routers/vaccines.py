@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app_vaccines.auth.dependencies import get_current_user
 from app_vaccines.models.database import get_session
-from app_vaccines.models.repository import VaccineRepository, UserRepository
+from app_vaccines.models.repository import VaccineRepository, VaccineService, UserRepository
 from app_vaccines.models.schemas import VaccineCreate, VaccineUpdate, VaccineID, MessageAPIResponse, CurrentUser
 from app_vaccines.routers import depends
 
@@ -28,7 +28,7 @@ async def get_all_vaccines(
 
     skip = pagination["skip"]
     limit = pagination["limit"]
-    vaccines = await VaccineRepository.get_vaccines(user_id, skip, limit, session)
+    vaccines = await VaccineService.get_vaccines(user_id, skip, limit, session)
 
     return vaccines
 
@@ -46,7 +46,7 @@ async def create_vaccine(
     if user_id is None:
         raise HTTPException(status_code=401, detail="Пользователь не создан в сервисе, нужно его создать в users")
 
-    new_vaccine = await VaccineRepository.add_vaccine(vaccine, user_id, session)
+    new_vaccine = await VaccineService.add_vaccine(vaccine, user_id, session)
 
     return new_vaccine
 
@@ -64,7 +64,7 @@ async def get_vaccine(
     if user_id is None:
         raise HTTPException(status_code=401, detail="Пользователь не создан в сервисе, нужно его создать в users")
 
-    vaccine = await VaccineRepository.get_vaccine_by_id(vaccine_id, user_id, session)
+    vaccine = await VaccineService.get_vaccine_by_id(vaccine_id, user_id, session)
 
     if vaccine is None:
         raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
@@ -86,7 +86,7 @@ async def put_vaccine(
     if user_id is None:
         raise HTTPException(status_code=401, detail="Пользователь не создан в сервисе, нужно его создать в users")
 
-    new_vaccine_db = await VaccineRepository.update_vaccine(vaccine_id, vaccine, user_id, session)
+    new_vaccine_db = await VaccineService.update_vaccine(vaccine_id, vaccine, user_id, session)
 
     if new_vaccine_db is None:
         raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
@@ -108,7 +108,7 @@ async def patch_vaccine(
     if user_id is None:
         raise HTTPException(status_code=401, detail="Пользователь не создан в сервисе, нужно его создать в users")
 
-    updated_vaccine = await VaccineRepository.update_vaccine(vaccine_id, vaccine, user_id, session)
+    updated_vaccine = await VaccineService.update_vaccine(vaccine_id, vaccine, user_id, session)
 
     if updated_vaccine is None:
         raise HTTPException(status_code=404, detail="Данные о вакцинации не найдены")
