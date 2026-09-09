@@ -3,12 +3,9 @@ from functools import lru_cache
 import httpx
 import jwt
 
-KEYCLOAK_URL = "http://localhost:8080"
-KEYCLOAK_REALM = "vaccines"
-KEYCLOAK_CLIENT_ID = "fastapi"
+from app_vaccines.config.settings import Settings
 
-
-ISSUER = f"{KEYCLOAK_URL}/realms/{KEYCLOAK_REALM}"
+ISSUER = f"{Settings.KEYCLOAK_URL}/realms/{Settings.KEYCLOAK_REALM}"
 
 OIDC_CONFIG_URL = (
     f"{ISSUER}/.well-known/openid-configuration"
@@ -40,7 +37,7 @@ def decode_token(token: str) -> dict:
             token,
             signing_key.key,
             algorithms=["RS256"],
-            audience=KEYCLOAK_CLIENT_ID,
+            audience=Settings.KEYCLOAK_CLIENT_ID,
             issuer=ISSUER,
         )
 

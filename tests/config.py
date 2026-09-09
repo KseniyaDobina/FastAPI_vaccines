@@ -37,6 +37,7 @@ async def test_db():
             async with test_engine.begin() as conn:
                 await conn.run_sync(Base.metadata.drop_all)
 
+
 # HTTP CLIENT
 
 @pytest_asyncio.fixture
@@ -58,12 +59,14 @@ async def client(test_db):
     app.dependency_overrides[get_session] = override_get_db
 
     try:
-        async with AsyncClient( transport=ASGITransport(app=app), base_url="http://test", ) as http_client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", ) as http_client:
             yield http_client
     finally:
         if old_db_override is None:
             app.dependency_overrides.pop(get_session, None)
-        else: app.dependency_overrides[get_session] = old_db_override
+        else:
+            app.dependency_overrides[get_session] = old_db_override
+
 
 @pytest_asyncio.fixture
 async def test_user(test_db):
@@ -79,9 +82,9 @@ async def test_user(test_db):
 
     return user
 
+
 @pytest_asyncio.fixture
 async def authenticated_client(client, test_user):
-
     async def override_get_current_user():
         return CurrentUser(
             sub="test-keycloak-id",
@@ -99,6 +102,7 @@ async def authenticated_client(client, test_user):
         else:
             app.dependency_overrides[get_current_user] = old_user_override
 
+
 @pytest_asyncio.fixture
 async def second_user(test_db):
     user = User(
@@ -113,11 +117,12 @@ async def second_user(test_db):
 
     return user
 
+
 @pytest_asyncio.fixture
 async def second_user_vaccine(
-    test_db,
-    second_user,
-    vaccine_test_data,
+        test_db,
+        second_user,
+        vaccine_test_data,
 ):
     vaccine = Vaccine(**vaccine_test_data, user_id=second_user.id)
 

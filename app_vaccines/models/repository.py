@@ -4,11 +4,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app_vaccines.models.db_models import Vaccine, User
 from app_vaccines.models.schemas import VaccineCreate, VaccineID, VaccineUpdate, CurrentUser, UserResponse
 
+
 class VaccineRepository:
     """
     Класс для получения информации о вакцинах.
     Добавления, изменения или удаления вакцин
     """
+
     @classmethod
     async def get_vaccines(cls, user: int, skip: int, limit: int, session: AsyncSession) -> list[VaccineID]:
         query = select(Vaccine).where(Vaccine.user_id == user).offset(skip).limit(limit)
@@ -27,7 +29,7 @@ class VaccineRepository:
         return VaccineID.model_validate(vaccine)
 
     @classmethod
-    async def add_vaccine(cls, vaccine: VaccineCreate, user_id:int, session: AsyncSession) -> VaccineID:
+    async def add_vaccine(cls, vaccine: VaccineCreate, user_id: int, session: AsyncSession) -> VaccineID:
         data = vaccine.model_dump()
         new_vaccine = Vaccine(**data, user_id=user_id)
         session.add(new_vaccine)
@@ -70,7 +72,7 @@ class VaccineRepository:
         return VaccineID.model_validate(vaccine_db)
 
     @classmethod
-    async def delete_vaccine(cls, vaccine_id: int, user:int, session: AsyncSession) -> bool:
+    async def delete_vaccine(cls, vaccine_id: int, user: int, session: AsyncSession) -> bool:
         query = delete(Vaccine).where(Vaccine.id == vaccine_id, Vaccine.user_id == user)
         result = await session.execute(query)
         await session.commit()

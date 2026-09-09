@@ -3,6 +3,7 @@ import pytest
 from tests.config import client, test_db, authenticated_client, test_user
 from tests.conftest import vaccine_in_db
 
+
 @pytest.mark.asyncio
 async def test_get_all_vaccines(authenticated_client):
     """
@@ -14,6 +15,7 @@ async def test_get_all_vaccines(authenticated_client):
 
     assert isinstance(data, list)
     assert response.status_code == 200
+
 
 @pytest.mark.asyncio
 async def test_get_vaccine(authenticated_client, vaccine_in_db):
@@ -42,6 +44,7 @@ async def test_get_vaccine(authenticated_client, vaccine_in_db):
     assert data["city"] == "Frankfurt am Main"
     assert data["notes"] == "Вакцинация проведена без осложнений"
     assert data["id"] == vaccine_in_db.id
+
 
 @pytest.mark.asyncio
 async def test_get_vaccine_not_found(authenticated_client):

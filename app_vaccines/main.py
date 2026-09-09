@@ -4,12 +4,14 @@ from fastapi import FastAPI
 from app_vaccines.models.database import create_database, delete_database
 from app_vaccines.routers import vaccines, users
 
+
 @asynccontextmanager
 async def lifespan_async(application: FastAPI):
     await create_database()
     yield
     # Пока ничего не удаляем
     # await delete_database()
+
 
 app = FastAPI(
     title="API для отслеживания своих вакцинаций",
