@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      PATH_TO_DB: ${{ secrets.PATH_TO_DB }}
+      PATH_TO_DB: sqlite+aiosqlite:///./ci.db
 
     steps:
       - name: Checkout repository
