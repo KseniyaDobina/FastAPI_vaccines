@@ -1,11 +1,13 @@
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Settings:
-    KEYCLOAK_URL = os.getenv("KEYCLOAK_URL")
-    KEYCLOAK_REALM = os.getenv("KEYCLOAK_REALM")
-    KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID")
-    PATH_TO_DB = os.getenv("PATH_TO_DB")
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
+    PATH_TO_DB: str
+    KEYCLOAK_URL: str
+    KEYCLOAK_REALM: str
+    KEYCLOAK_CLIENT_ID: str
+
+
+settings = Settings()

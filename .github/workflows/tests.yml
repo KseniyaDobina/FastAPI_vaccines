@@ -10,6 +10,9 @@ jobs:
 
     env:
       PATH_TO_DB: sqlite+aiosqlite:///./ci.db
+      KEYCLOAK_URL: http://localhost:8080
+      KEYCLOAK_REALM: test-realm
+      KEYCLOAK_CLIENT_ID: test-client
 
     steps:
       - name: Checkout repository

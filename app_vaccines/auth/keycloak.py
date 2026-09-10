@@ -3,9 +3,9 @@ from functools import lru_cache
 import httpx
 import jwt
 
-from app_vaccines.config.settings import Settings
+from app_vaccines.config.settings import settings
 
-ISSUER = f"{Settings.KEYCLOAK_URL}/realms/{Settings.KEYCLOAK_REALM}"
+ISSUER = f"{settings.KEYCLOAK_URL}/realms/{settings.KEYCLOAK_REALM}"
 
 OIDC_CONFIG_URL = (
     f"{ISSUER}/.well-known/openid-configuration"
