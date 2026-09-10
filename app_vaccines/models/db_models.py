@@ -30,6 +30,6 @@ class Vaccine(Base):
 class User(Base):
     __tablename__ = 'users'
     id: Mapped[int] = mapped_column(primary_key=True)
-    keycloak_id: Mapped[str]
+    keycloak_id: Mapped[str] = mapped_column(unique=True)
     username: Mapped[str | None]
     email: Mapped[str | None]
