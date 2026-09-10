@@ -1,3 +1,4 @@
+from fastapi import HTTPException, status
 from sqlalchemy import select, delete
 from collections.abc import Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -81,7 +82,10 @@ class VaccineService:
                 new_expiration_date is not None
                 and new_expiration_date <= new_vaccination_date
         ):
-            raise ValueError("expiration_date должна быть позже, чем vaccination_date")
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="expiration_date должна быть позже, чем vaccination_date",
+            )
 
         for field, value in update_data.items():
             setattr(vaccine_db, field, value)
