@@ -1,6 +1,6 @@
 import pytest
 
-from .config import client, test_db, authenticated_client, test_user
+from tests.config import client, test_db, authenticated_client, test_user
 
 
 @pytest.mark.asyncio
