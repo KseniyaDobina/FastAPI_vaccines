@@ -22,7 +22,7 @@ async def get_current_user(
         token: str = Depends(oauth2_scheme),
 ) -> CurrentUser:
     try:
-        payload = decode_token(token)
+        payload = await decode_token(token)
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
