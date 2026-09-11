@@ -2,168 +2,82 @@
 
 > REST API для ведения личного журнала вакцинации.
 
-Во многих медицинских учреждениях информация о ранее сделанных прививках хранится в разных системах
-или вовсе теряется при смене поликлиники. Цель проекта — создать простой REST API
-для хранения собственной истории вакцинации.
+Во многих медицинских учреждениях информация о ранее сделанных прививках хранится в разных системах или вовсе теряется
+при смене поликлиники. Цель проекта — простой REST API для хранения собственной истории вакцинации, с
+JWT-аутентификацией через Keycloak, Repository pattern, асинхронной работой с БД и автоматизированными тестами.
 
-Проект создан в учебных целях для практики:
-
-* разработки REST API на FastAPI;
-* асинхронной работы с базой данных;
-* SQLAlchemy 2.x;
-* Pydantic;
-* JWT-аутентификации и интеграции с Keycloak;
-* Repository pattern;
-* автоматизированного API-тестирования;
-* Docker;
-* GitHub Actions CI.
-
-> ⚠️ Важно:
-> API не связано с государственными или частными медицинскими учреждениями.
-> Все данные вводятся пользователем вручную и не проверяются через системы ОМС, ДМС или другие медицинские сервисы.
+> ⚠️ Важно: API не связано с государственными или частными медицинскими учреждениями. Все данные вводятся пользователем
+> вручную и не проверяются через системы ОМС, ДМС или другие медицинские сервисы.
 
 ---
 
-## ✨ Возможности
+## 🚀 Quick Start
 
-### Vaccinations
+```bash
+git clone https://github.com/KseniyaDobina/FastAPI_vaccines.git
+cd FastAPI_vaccines
+cp .env.example .env   # заполнить PATH_TO_DB, KEYCLOAK_URL, KEYCLOAK_REALM, KEYCLOAK_CLIENT_ID
+docker-compose up
+```
 
-API поддерживает полный CRUD для записей о вакцинации:
+После запуска документация доступна на [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
 
-* получение списка вакцинаций с пагинацией (`skip`/`limit`, максимум 20 записей за раз);
-* получение вакцинации по ID;
-* создание новой записи;
-* полное обновление записи через `PUT`;
-* частичное обновление через `PATCH`;
-* удаление записи;
-* валидация входных данных;
-* проверка связанных дат — согласована между Pydantic-валидатором и сервисным слоем, оба пути отдают `422`,
-  даже если в `PATCH` передано только одно из двух связанных полей;
-* обработка отсутствующих записей.
+Без Docker:
 
-### Authentication
+```bash
+pip install -r requirements.txt
+uvicorn app_vaccines.main:app --reload
+```
 
-Для защиты API используется JWT-аутентификация с интеграцией **Keycloak**.
+### Запуск тестов
 
-Приложение:
+(реальный Keycloak не требуется — авторизация в тестах подменяется, а JWT-проверка тестируется на самостоятельно
+сгенерированной тестовой RSA-паре):
 
-* получает JWT из `Authorization: Bearer <token>`;
-* проверяет подпись JWT;
-* получает OIDC-конфигурацию и JWKS от Keycloak асинхронно (`httpx.AsyncClient`),
-  не блокируя обработку остальных запросов;
-* кэширует OIDC-конфигурацию и публичные ключи в памяти процесса и умеет
-  самостоятельно обновлять кэш при ротации ключей на стороне Keycloak;
-* определяет текущего пользователя по JWT;
-* связывает локального пользователя с идентификатором из Keycloak;
-* ограничивает доступ к вакцинациям текущего пользователя.
-
-### 🧪 Testing
-
-Проект содержит автоматизированные API-тесты на:
-
-* создание вакцинации;
-* получение вакцинаций, включая границы пагинации;
-* обновление, частичное обновление и связанную с ним валидацию дат;
-* удаление;
-* валидацию входных данных;
-* обработку ошибок;
-* работу пользователей;
-* изоляцию данных между пользователями;
-* проверку JWT: валидный токен, истёкший срок действия, неверные `audience`/`issuer`, поддельная подпись,
-  неизвестный `kid`, самовосстановление кэша ключей при ротации.
-
-Для тестов используется отдельная SQLite database, dependency overrides FastAPI, а для тестов авторизации —
-самостоятельно сгенерированная тестовая RSA-пара ключей вместо реального Keycloak.
-
-### Development
-
-Проект поддерживает запуск в Docker и автоматический запуск тестов через GitHub Actions.
+```bash
+pytest
+```
 
 ---
 
 ## 🛠 Стек технологий
 
-| Technology     | Purpose                   |
-|----------------|---------------------------|
-| Python 3.13    | Основной язык             |
-| FastAPI        | REST API framework        |
-| Pydantic       | Валидация и схемы данных  |
-| SQLAlchemy 2.x | ORM                       |
-| SQLite         | База данных               |
-| aiosqlite      | Асинхронный SQLite driver |
-| Uvicorn        | ASGI server               |
-| PyJWT          | Работа с JWT              |
-| HTTPX          | HTTP-клиент               |
-| Pytest         | Тестирование              |
-| pytest-asyncio | Асинхронные тесты         |
-| Docker         | Контейнеризация           |
-| GitHub Actions | CI                        |
+| Technology              | Purpose                                  |
+|-------------------------|------------------------------------------|
+| Python 3.13             | Основной язык                            |
+| FastAPI                 | REST API framework                       |
+| Pydantic                | Валидация и схемы данных                 |
+| pydantic-settings       | Валидация конфигурации из env-переменных |
+| SQLAlchemy 2.x          | ORM (async)                              |
+| SQLite / aiosqlite      | База данных                              |
+| Uvicorn                 | ASGI server                              |
+| PyJWT                   | Проверка JWT (RS256, JWKS)               |
+| HTTPX                   | Асинхронный HTTP-клиент                  |
+| Keycloak                | Аутентификация (OIDC)                    |
+| Pytest / pytest-asyncio | Тестирование                             |
+| Docker                  | Контейнеризация                          |
+| GitHub Actions          | CI                                       |
 
 ---
 
-## Структура проекта
+## ✨ Возможности
 
-Проект построен с разделением ответственности между слоями:
+**Vaccinations** — полный CRUD для записей о вакцинации: список с пагинацией (максимум 20 записей за раз), получение по
+ID, создание, полное (`PUT`) и частичное (`PATCH`) обновление, удаление. Валидация входных данных и связанных дат
+согласована между слоями — `PATCH` только с одним из связанных полей отдаёт `422`, как и создание с обоими полями сразу.
 
-```text
-FastAPI_vaccines/
-│
-├── app_vaccines/
-│   ├── auth/
-│   │   ├── __init__.py
-│   │   ├── dependencies.py
-│   │   └── keycloak.py
-│   │
-│   ├── config/
-│   │   ├── __init__.py
-│   │   └── settings.py
-│   │
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── database.py
-│   │   ├── db_models.py
-│   │   ├── repository.py
-│   │   └── schemas.py
-│   │
-│   ├── routers/
-│   │   ├── __init__.py
-│   │   ├── depends.py
-│   │   ├── users.py
-│   │   └── vaccines.py
-│   │
-│   └── main.py
-│
-├── tests/
-│   ├── api_test.py
-│   ├── config.py
-│   ├── conftest.py
-│   ├── test_auth_keycloak.py
-│   ├── test_users.py
-│   ├── test_vaccines.py
-│   ├── test_vaccines_create.py
-│   ├── test_vaccines_delete.py
-│   ├── test_vaccines_isolation.py
-│   ├── test_vaccines_read.py
-│   └── test_vaccines_update.py
-│
-├── .github/
-│   └── workflows/
-│       └── tests.yml
-│
-├── .dockerignore
-├── .env.example
-├── .gitignore
-├── docker-compose.yml
-├── Dockerfile
-├── README.md
-└── requirements.txt
-```
+**Authentication** — JWT-аутентификация с интеграцией Keycloak: подпись токена (RS256), `audience` и `issuer`
+проверяются на каждый запрос; OIDC-конфигурация и публичные ключи получаются асинхронно и кэшируются в памяти процесса,
+с самовосстановлением кэша при ротации ключей на стороне Keycloak.
+
+**Изоляция данных** — каждый пользователь видит и может изменять только свои записи, на уровне SQL-запросов, а не
+постфактум в Python.
+
+Подробности — структура данных и список эндпоинтов ниже, в разделе 'API Reference'.
 
 ---
 
 ## Архитектура приложения
-
-Приложение разделено на несколько логических компонентов:
 
 ```text
 Client
@@ -186,13 +100,105 @@ Client
         SQLite
 ```
 
+Разделение ответственности: `routers/` — HTTP-слой, `auth/` — проверка JWT и получение текущего пользователя,
+`models/repository.py` — доступ к БД и бизнес-логика, `models/db_models.py` / `schemas.py` — ORM-модели и
+Pydantic-схемы.
+
 ---
 
-## Модель данных
+## 🧪 Тестирование
 
-Основная сущность приложения — `Vaccine`.
+```bash
+pytest
+```
 
-Запись содержит информацию о вакцинации и принадлежит конкретному пользователю.
+Тесты разделены по доменам:
+
+```text
+tests/
+├── conftest.py
+├── config.py
+├── auth/
+│   └── test_keycloak.py       # проверка JWT без реального Keycloak
+├── users/
+│   └── test_users.py
+└── vaccines/
+    ├── test_unauthenticated.py
+    ├── test_create.py
+    ├── test_read.py
+    ├── test_update.py
+    ├── test_delete.py
+    └── test_isolation.py
+```
+
+Покрыто: CRUD по вакцинациям и границы пагинации, валидация входных данных и связанных дат, обработка отсутствующих
+записей, изоляция данных между пользователями, работа с пользователями, а также проверка JWT — валидный токен, истёкший
+срок действия, неверные `audience`/`issuer`, поддельная подпись, неизвестный `kid`, самовосстановление кэша ключей при
+ротации.
+
+Для тестов используется отдельная SQLite database и dependency overrides FastAPI; для тестов авторизации —
+самостоятельно сгенерированная тестовая RSA-пара вместо реального Keycloak.
+
+---
+
+## 📌 Планируемые улучшения
+
+* поиск по заболеванию, фильтрация и сортировка;
+* PostgreSQL + Alembic migrations;
+* вынос повторяющейся проверки пользователя (`get_current_user_id`) в общую зависимость по всем роутерам;
+* индекс/уникальность на `User.keycloak_id`;
+* явный `response_model` для `/users/me` вместо сырого payload из токена;
+* линтер и mypy в CI, coverage-отчёт;
+* production-ready configuration (CORS, rate limiting);
+* улучшение Docker setup и OpenAPI examples.
+
+---
+
+## 📖 Подробности
+
+###
+
+<details>
+<summary>Структура проекта</summary>
+
+```text
+FastAPI_vaccines/
+│
+├── app_vaccines/
+│   ├── auth/
+│   │   ├── dependencies.py
+│   │   └── keycloak.py
+│   ├── config/
+│   │   └── settings.py
+│   ├── models/
+│   │   ├── database.py
+│   │   ├── db_models.py
+│   │   ├── repository.py
+│   │   └── schemas.py
+│   ├── routers/
+│   │   ├── depends.py
+│   │   ├── users.py
+│   │   └── vaccines.py
+│   └── main.py
+│
+├── tests/
+│   ├── config.py
+│   ├── conftest.py
+│   ├── auth/
+│   ├── users/
+│   └── vaccines/
+│
+├── .github/workflows/tests.yml
+├── .env.example
+├── docker-compose.yml
+├── Dockerfile
+└── requirements.txt
+```
+
+</details>
+
+<details>
+<summary>Модель данных — Vaccine</summary>
 
 | Field              | Type      | Required | Description                             |
 |--------------------|-----------|---------:|-----------------------------------------|
@@ -211,22 +217,23 @@ Client
 | `notes`            | `string`  |       ❌ | Дополнительные заметки                  |
 | `user_id`          | `integer` |        — | Владелец записи                         |
 
----
+</details>
 
-## 🔌 API Endpoints
+<details>
+<summary>🔌 API Reference</summary>
 
 ### Vaccinations
 
-Все endpoints вакцинаций требуют авторизации.
+Все endpoints требуют авторизации.
 
-| Method   | Endpoint                 | Description                                                                                                                     |
-|----------|--------------------------|---------------------------------------------------------------------------------------------------------------------------------|
-| `GET`    | `/vaccines`              | Возвращает список вакцинаций текущего пользователя                                                                              |
-| `GET`    | `/vaccines/{vaccine_id}` | Получить вакцинацию по ID. Если запись не существует или принадлежит другому пользователю, она недоступна текущему пользователю |
-| `POST`   | `/vaccines`              | Создаёт новую запись вакцинации для текущего пользователя                                                                       |
-| `PUT`    | `/vaccines/{vaccine_id}` | Полностью обновить вакцинацию                                                                                                   |
-| `PATCH`  | `/vaccines/{vaccine_id}` | Позволяет изменить только необходимые поля                                                                                      |
-| `DELETE` | `/vaccines/{vaccine_id}` | Удалить вакцинацию текущего пользователя                                                                                        |
+| Method   | Endpoint                 | Description                                                                   |
+|----------|--------------------------|-------------------------------------------------------------------------------|
+| `GET`    | `/vaccines`              | Список вакцинаций текущего пользователя (пагинация: `skip`, `limit` до 20)    |
+| `GET`    | `/vaccines/{vaccine_id}` | Получить вакцинацию по ID (недоступна, если принадлежит другому пользователю) |
+| `POST`   | `/vaccines`              | Создать новую запись вакцинации                                               |
+| `PUT`    | `/vaccines/{vaccine_id}` | Полностью обновить вакцинацию                                                 |
+| `PATCH`  | `/vaccines/{vaccine_id}` | Изменить только переданные поля                                               |
+| `DELETE` | `/vaccines/{vaccine_id}` | Удалить вакцинацию                                                            |
 
 Пример запроса для `POST`:
 
@@ -249,117 +256,31 @@ Client
 
 ### Users
 
-| Method | Endpoint    | Description                           |
-|--------|-------------|---------------------------------------|
-| `GET`  | `/users/me` | Получить данные текущего пользователя |
-| `Post` | `/users/me` | Создание нового пользователя          |
+| Method | Endpoint    | Description                                    |
+|--------|-------------|------------------------------------------------|
+| `GET`  | `/users/me` | Получить данные текущего пользователя          |
+| `POST` | `/users/me` | Создать пользователя (после логина в Keycloak) |
 
----
+</details>
 
-# 🔐 Аутентификация
+<details>
+<summary>Аутентификация и конфигурация</summary>
 
-API использует Bearer JWT authentication.
+API использует Bearer JWT authentication. Приложение получает OIDC-конфигурацию и JWKS от Keycloak асинхронно
+(`httpx.AsyncClient`, без блокировки event loop) и использует их для проверки подписи, `audience` и `issuer` каждого
+JWT. Результат кэшируется в памяти процесса; при ротации ключей на стороне Keycloak кэш обновляется автоматически.
 
-Приложение получает OIDC configuration и JWKS от Keycloak асинхронно (через `httpx.AsyncClient`, без блокировки event
-loop) и использует их для проверки подписи, `audience` и `issuer` каждого JWT.
+Настройки приложения (`PATH_TO_DB`, `KEYCLOAK_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_CLIENT_ID`) описаны через
+`pydantic-settings` и валидируются при старте: если переменная не задана, приложение упадёт сразу при импорте с понятной
+ошибкой. Локально переменные читаются из `.env` (см. `.env.example`), в CI — задаются в `.github/workflows/tests.yml`.
 
-OIDC-конфигурация и публичные ключи кэшируются в памяти процесса, чтобы не ходить в Keycloak на каждый запрос. При
-ротации ключей на стороне Keycloak (появление нового `kid`, которого ещё нет в кэше) приложение самостоятельно обновляет
-кэш, не отклоняя валидные токены.
-
-# База данных
-
-В текущей версии используется **SQLite**.
-
-Работа с базой данных построена на:
-
-* SQLAlchemy 2.x;
-* `AsyncEngine`;
-* `AsyncSession`;
-* `aiosqlite`;
-* SQLAlchemy ORM;
-* Repository pattern
-
-Работа с database выполняется асинхронно.
-
----
-
-# Тестирование
-
-🧪 Testing
-
-Для запуска тестов: `pytest`
-
-Тесты используют:
-
-* pytest
-* pytest-asyncio
-* httpx
-* тестовую SQLite database
-
-Тестовые сценарии разделены по CRUD-операциям:
-
-```text
-tests/
-├── config.py
-├── conftest.py
-├── test_auth_keycloak.py
-├── test_users.py
-├── test_vaccines.py
-├── test_vaccines_create.py
-├── test_vaccines_isolation.py
-├── test_vaccines_read.py
-├── test_vaccines_update.py
-└── test_vaccines_delete.py
-```
-
-Проверяются основные позитивные и негативные сценарии API, включая обработку отсутствующих ресурсов и валидацию данных.
-
-Отдельно, в `test_auth_keycloak.py`, проверяется логика проверки JWT (`app_vaccines/auth/keycloak.py`) без обращения к
-реальному Keycloak: тесты сами генерируют RSA-ключи, подписывают ими тестовые токены и подменяют сетевые вызовы
-`httpx.AsyncClient`, чтобы проверить валидные и невалидные токены (истёкший срок, чужая подпись, неверные `audience`/
-`issuer`, неизвестный `kid`), а также самовосстановление кэша ключей при ротации.
-
----
-
-# Планируемые улучшения
-
-* поиск по заболеванию;
-* фильтрация и сортировка;
-* PostgreSQL;
-* Alembic migrations;
-* явный `response_model` для `/users/me` вместо сырого payload из токена;
-* линтер и mypy в CI;
-* увеличение test coverage и coverage-отчёт;
-* увеличение test coverage;
-* улучшение OpenAPI examples;
-* production-ready configuration;
-* улучшение Docker setup.
-
----
-
-## 🎯 Project Goals
-
-Проект создан как pet-проект для практики:
-
-* разработки REST API на FastAPI;
-* асинхронного программирования на Python;
-* работы с SQLAlchemy 2.x;
-* проектирования Repository / Service layer;
-* API testing;
-* pytest и async testing;
-* Docker;
-* CI/CD;
-* JWT-based authentication;
-* подготовки backend-проекта для QA Automation portfolio.
+</details>
 
 ---
 
 ## 👩‍💻 Author
 
 **Kseniya Dobina**
-
----
 
 ## 📄 License
 
