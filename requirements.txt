@@ -3,6 +3,7 @@ cryptography
 python-dotenv
 fastapi
 uvicorn
+pydantic_settings
 PyJWT
 sqlalchemy
 

@@ -1,4 +1,6 @@
+from fastapi import HTTPException, status
 from sqlalchemy import select, delete
+from collections.abc import Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app_vaccines.models.db_models import Vaccine, User
@@ -7,23 +9,45 @@ from app_vaccines.models.schemas import VaccineCreate, VaccineID, VaccineUpdate,
 
 class VaccineRepository:
     """
-    Класс для получения информации о вакцинах.
-    Добавления, изменения или удаления вакцин
+    Класс для получения информации о вакцинах
+    """
+
+    @classmethod
+    async def get_vaccines(cls, user: int, skip: int, limit: int, session: AsyncSession) -> Sequence[Vaccine]:
+        query = select(Vaccine).where(Vaccine.user_id == user).offset(skip).limit(limit)
+        result = await session.execute(query)
+        vaccine_models = result.scalars().all()
+        return vaccine_models
+
+    @classmethod
+    async def get_vaccine_by_id(cls, vaccine_id: int, user: int, session: AsyncSession) -> Vaccine | None:
+        query = select(Vaccine).where(Vaccine.id == vaccine_id, Vaccine.user_id == user)
+        result = await session.execute(query)
+        vaccine = result.scalar_one_or_none()
+        return vaccine
+
+    @classmethod
+    async def delete_vaccine(cls, vaccine_id: int, user: int, session: AsyncSession) -> bool:
+        query = delete(Vaccine).where(Vaccine.id == vaccine_id, Vaccine.user_id == user)
+        result = await session.execute(query)
+        # result.rowcount показывает, сколько строк было затронуто (0 или 1)
+        return result.rowcount > 0
+
+
+class VaccineService:
+    """
+    Класс для добавления, изменения вакцин и удаления
     """
 
     @classmethod
     async def get_vaccines(cls, user: int, skip: int, limit: int, session: AsyncSession) -> list[VaccineID]:
-        query = select(Vaccine).where(Vaccine.user_id == user).offset(skip).limit(limit)
-        result = await session.execute(query)
-        vaccine_models = result.scalars().all()
+        vaccine_models = await VaccineRepository.get_vaccines(user, skip, limit, session)
         vaccines = [VaccineID.model_validate(vaccine_model) for vaccine_model in vaccine_models]
         return vaccines
 
     @classmethod
-    async def get_vaccine_by_id(cls, vaccine_id: int, user: int, session: AsyncSession):
-        query = select(Vaccine).where(Vaccine.id == vaccine_id, Vaccine.user_id == user)
-        result = await session.execute(query)
-        vaccine = result.scalar_one_or_none()
+    async def get_vaccine_by_id(cls, vaccine_id: int, user: int, session: AsyncSession) -> VaccineID | None:
+        vaccine = await VaccineRepository.get_vaccine_by_id(vaccine_id, user, session)
         if vaccine is None:
             return None
         return VaccineID.model_validate(vaccine)
@@ -33,7 +57,6 @@ class VaccineRepository:
         data = vaccine.model_dump()
         new_vaccine = Vaccine(**data, user_id=user_id)
         session.add(new_vaccine)
-        await session.flush()
         await session.commit()
         await session.refresh(new_vaccine)
         return VaccineID.model_validate(new_vaccine)
@@ -46,10 +69,8 @@ class VaccineRepository:
             user: int,
             session: AsyncSession
     ) -> VaccineID | None:
-        result = await session.execute(
-            select(Vaccine).where(Vaccine.id == vaccine_id, Vaccine.user_id == user)
-        )
-        vaccine_db = result.scalar_one_or_none()
+
+        vaccine_db = await VaccineRepository.get_vaccine_by_id(vaccine_id, user, session)
 
         if vaccine_db is None:
             return None
@@ -61,7 +82,10 @@ class VaccineRepository:
                 new_expiration_date is not None
                 and new_expiration_date <= new_vaccination_date
         ):
-            raise ValueError("expiration_date должна быть позже, чем vaccination_date")
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="expiration_date должна быть позже, чем vaccination_date",
+            )
 
         for field, value in update_data.items():
             setattr(vaccine_db, field, value)
@@ -73,11 +97,9 @@ class VaccineRepository:
 
     @classmethod
     async def delete_vaccine(cls, vaccine_id: int, user: int, session: AsyncSession) -> bool:
-        query = delete(Vaccine).where(Vaccine.id == vaccine_id, Vaccine.user_id == user)
-        result = await session.execute(query)
+        result = await VaccineRepository.delete_vaccine(vaccine_id, user, session)
         await session.commit()
-        # result.rowcount показывает, сколько строк было затронуто (0 или 1)
-        return result.rowcount > 0
+        return result
 
 
 class UserRepository:

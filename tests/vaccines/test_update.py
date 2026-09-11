@@ -221,6 +221,30 @@ async def test_patch_rejects_too_long_string_fields(
     errors = response.json()["detail"]
     assert any(error["loc"][-1] == field for error in errors)
 
+@pytest.mark.asyncio
+async def test_patch_rejects_expiration_date_before_existing_vaccination_date(
+        authenticated_client,
+        vaccine_in_db,
+):
+    """
+    БАГ: если в PATCH передать только expiration_date (без vaccination_date),
+    Pydantic-валидатор VaccineUpdate ничего не проверяет, т.к. видит только
+    одно поле. Проверка "expiration_date > vaccination_date" происходит уже
+    в VaccineService.update_vaccine и падает голым ValueError, который никто
+    не ловит -> FastAPI отдаёт 500 вместо ожидаемого 422/400.
+
+    vaccine_in_db.vaccination_date == 2026-08-20 (см. vaccine_test_data),
+    поэтому expiration_date раньше этой даты должен быть отклонён.
+    """
+    response = await authenticated_client.patch(
+        f"/vaccines/{vaccine_in_db.id}",
+        json={"expiration_date": "2026-01-01"},
+    )
+
+    # Ожидаемое поведение API - клиентская ошибка, а не падение сервера
+    assert response.status_code == 422
+    assert "expiration_date должна быть позже, чем vaccination_date" in response.text
+
 
 @pytest.mark.parametrize(
     ("field", "value"),
