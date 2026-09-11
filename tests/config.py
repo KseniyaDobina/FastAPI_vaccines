@@ -1,3 +1,4 @@
+import os
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -7,6 +8,15 @@ from app_vaccines.main import app
 from app_vaccines.models.database import Base, get_session
 from app_vaccines.models.db_models import User, Vaccine
 from app_vaccines.models.schemas import CurrentUser
+
+
+# Дефолтные значения для локального запуска тестов, если .env не настроен.
+# setdefault() ничего не перезапишет, если переменная уже задана - ни через
+# реальный .env локально, ни через env в CI (.github/workflows/tests.yml)
+os.environ.setdefault("PATH_TO_DB", "sqlite+aiosqlite:///./test.db")
+os.environ.setdefault("KEYCLOAK_URL", "http://localhost:8080")
+os.environ.setdefault("KEYCLOAK_REALM", "test-realm")
+os.environ.setdefault("KEYCLOAK_CLIENT_ID", "test-client")
 
 # Тестовая бд
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
