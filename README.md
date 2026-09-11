@@ -111,6 +111,7 @@ Pydantic-схемы.
 ```bash
 pytest
 ```
+Текущее покрытие тестами — **77%**.
 
 Тесты разделены по доменам:
 
@@ -148,7 +149,7 @@ tests/
 * вынос повторяющейся проверки пользователя (`get_current_user_id`) в общую зависимость по всем роутерам;
 * индекс/уникальность на `User.keycloak_id`;
 * явный `response_model` для `/users/me` вместо сырого payload из токена;
-* линтер и mypy в CI, coverage-отчёт;
+* линтер и mypy в CI;
 * production-ready configuration (CORS, rate limiting);
 * улучшение Docker setup и OpenAPI examples.
 
