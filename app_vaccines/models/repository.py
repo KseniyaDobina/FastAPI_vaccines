@@ -1,10 +1,17 @@
-from fastapi import HTTPException, status
-from sqlalchemy import select, delete
 from collections.abc import Sequence
+
+from fastapi import HTTPException, status
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app_vaccines.models.db_models import Vaccine, User
-from app_vaccines.models.schemas import VaccineCreate, VaccineID, VaccineUpdate, CurrentUser, UserResponse
+from app_vaccines.models.db_models import User, Vaccine
+from app_vaccines.models.schemas import (
+    CurrentUser,
+    UserResponse,
+    VaccineCreate,
+    VaccineID,
+    VaccineUpdate,
+)
 
 
 class VaccineRepository:
@@ -13,14 +20,18 @@ class VaccineRepository:
     """
 
     @classmethod
-    async def get_vaccines(cls, user: int, skip: int, limit: int, session: AsyncSession) -> Sequence[Vaccine]:
+    async def get_vaccines(
+        cls, user: int, skip: int, limit: int, session: AsyncSession
+    ) -> Sequence[Vaccine]:
         query = select(Vaccine).where(Vaccine.user_id == user).offset(skip).limit(limit)
         result = await session.execute(query)
         vaccine_models = result.scalars().all()
         return vaccine_models
 
     @classmethod
-    async def get_vaccine_by_id(cls, vaccine_id: int, user: int, session: AsyncSession) -> Vaccine | None:
+    async def get_vaccine_by_id(
+        cls, vaccine_id: int, user: int, session: AsyncSession
+    ) -> Vaccine | None:
         query = select(Vaccine).where(Vaccine.id == vaccine_id, Vaccine.user_id == user)
         result = await session.execute(query)
         vaccine = result.scalar_one_or_none()
@@ -40,20 +51,26 @@ class VaccineService:
     """
 
     @classmethod
-    async def get_vaccines(cls, user: int, skip: int, limit: int, session: AsyncSession) -> list[VaccineID]:
+    async def get_vaccines(
+        cls, user: int, skip: int, limit: int, session: AsyncSession
+    ) -> list[VaccineID]:
         vaccine_models = await VaccineRepository.get_vaccines(user, skip, limit, session)
         vaccines = [VaccineID.model_validate(vaccine_model) for vaccine_model in vaccine_models]
         return vaccines
 
     @classmethod
-    async def get_vaccine_by_id(cls, vaccine_id: int, user: int, session: AsyncSession) -> VaccineID | None:
+    async def get_vaccine_by_id(
+        cls, vaccine_id: int, user: int, session: AsyncSession
+    ) -> VaccineID | None:
         vaccine = await VaccineRepository.get_vaccine_by_id(vaccine_id, user, session)
         if vaccine is None:
             return None
         return VaccineID.model_validate(vaccine)
 
     @classmethod
-    async def add_vaccine(cls, vaccine: VaccineCreate, user_id: int, session: AsyncSession) -> VaccineID:
+    async def add_vaccine(
+        cls, vaccine: VaccineCreate, user_id: int, session: AsyncSession
+    ) -> VaccineID:
         data = vaccine.model_dump()
         new_vaccine = Vaccine(**data, user_id=user_id)
         session.add(new_vaccine)
@@ -63,11 +80,11 @@ class VaccineService:
 
     @classmethod
     async def update_vaccine(
-            cls,
-            vaccine_id: int,
-            vaccine: VaccineCreate | VaccineUpdate,
-            user: int,
-            session: AsyncSession
+        cls,
+        vaccine_id: int,
+        vaccine: VaccineCreate | VaccineUpdate,
+        user: int,
+        session: AsyncSession,
     ) -> VaccineID | None:
 
         vaccine_db = await VaccineRepository.get_vaccine_by_id(vaccine_id, user, session)
@@ -78,10 +95,7 @@ class VaccineService:
         new_vaccination_date = update_data.get("vaccination_date", vaccine_db.vaccination_date)
         new_expiration_date = update_data.get("expiration_date", vaccine_db.expiration_date)
 
-        if (
-                new_expiration_date is not None
-                and new_expiration_date <= new_vaccination_date
-        ):
+        if new_expiration_date is not None and new_expiration_date <= new_vaccination_date:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="expiration_date должна быть позже, чем vaccination_date",
@@ -103,7 +117,6 @@ class VaccineService:
 
 
 class UserRepository:
-
     @classmethod
     async def get_user_id(cls, current_user: CurrentUser, session: AsyncSession) -> User | None:
         result = await session.execute(select(User).where(User.keycloak_id == current_user.sub))
@@ -113,7 +126,9 @@ class UserRepository:
         return user
 
     @classmethod
-    async def create_user(cls, current_user: CurrentUser, session: AsyncSession) -> UserResponse | None:
+    async def create_user(
+        cls, current_user: CurrentUser, session: AsyncSession
+    ) -> UserResponse | None:
         result = await session.execute(select(User).where(User.keycloak_id == current_user.sub))
         user = result.scalar_one_or_none()
 

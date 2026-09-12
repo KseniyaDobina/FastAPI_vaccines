@@ -1,4 +1,5 @@
 from datetime import date
+
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -8,9 +9,13 @@ class Base(DeclarativeBase):
 
 
 class Vaccine(Base):
-    __tablename__ = 'vaccines'
+    __tablename__ = "vaccines"
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True, )
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True,
+    )
     # date_created_note: Mapped[date]
     # date_change_note: Mapped[date]
     disease: Mapped[str]
@@ -28,7 +33,7 @@ class Vaccine(Base):
 
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id: Mapped[int] = mapped_column(primary_key=True)
     keycloak_id: Mapped[str] = mapped_column(unique=True)
     username: Mapped[str | None]

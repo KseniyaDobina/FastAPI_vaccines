@@ -4,8 +4,8 @@ import asyncio
 
 import httpx
 import jwt
-from jwt.algorithms import RSAAlgorithm
 from fastapi import HTTPException, status
+from jwt.algorithms import RSAAlgorithm
 
 from app_vaccines.config.settings import settings
 
@@ -39,10 +39,7 @@ async def _fetch_jwks() -> dict[str, RSAAlgorithm]:
         jwks = response.json()
 
     # from_jwk - чистый разбор JSON в объект ключа, без сети
-    return {
-        key["kid"]: RSAAlgorithm.from_jwk(key)
-        for key in jwks["keys"]
-    }
+    return {key["kid"]: RSAAlgorithm.from_jwk(key) for key in jwks["keys"]}
 
 
 async def _get_signing_key(kid: str) -> RSAAlgorithm:

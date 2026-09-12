@@ -7,19 +7,17 @@ from app_vaccines.models.schemas import CurrentUser
 
 oauth2_scheme = OAuth2AuthorizationCodeBearer(
     authorizationUrl=(
-        f"{settings.KEYCLOAK_URL}/realms/{settings.KEYCLOAK_REALM}"
-        "/protocol/openid-connect/auth"
+        f"{settings.KEYCLOAK_URL}/realms/{settings.KEYCLOAK_REALM}/protocol/openid-connect/auth"
     ),
     tokenUrl=(
-        f"{settings.KEYCLOAK_URL}/realms/{settings.KEYCLOAK_REALM}"
-        "/protocol/openid-connect/token"
+        f"{settings.KEYCLOAK_URL}/realms/{settings.KEYCLOAK_REALM}/protocol/openid-connect/token"
     ),
     scopes={},
 )
 
 
 async def get_current_user(
-        token: str = Depends(oauth2_scheme),
+    token: str = Depends(oauth2_scheme),
 ) -> CurrentUser:
     try:
         payload = await decode_token(token)
