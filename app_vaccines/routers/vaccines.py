@@ -103,7 +103,7 @@ async def delete_vaccine(
     Удаление записи о вакцинации
     """
 
-    result = await VaccineRepository.delete_vaccine(vaccine_id, user_id, session)
+    result = await VaccineService.delete_vaccine(vaccine_id, user_id, session)
 
     if result:
         return {"message": f"Удалена вакцина №{vaccine_id}"}
