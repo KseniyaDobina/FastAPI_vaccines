@@ -105,12 +105,12 @@ class VaccineService:
 class UserRepository:
 
     @classmethod
-    async def get_user(cls, current_user: CurrentUser, session: AsyncSession) -> int | None:
+    async def get_user_id(cls, current_user: CurrentUser, session: AsyncSession) -> User | None:
         result = await session.execute(select(User).where(User.keycloak_id == current_user.sub))
         user = result.scalar_one_or_none()
         if user is None:
             return None
-        return user.id
+        return user
 
     @classmethod
     async def create_user(cls, current_user: CurrentUser, session: AsyncSession) -> UserResponse | None:
