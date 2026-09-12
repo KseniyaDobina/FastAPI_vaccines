@@ -19,7 +19,7 @@ async def get_user(session: AsyncSession = Depends(get_session), user: User = De
     return user
 
 
-@router.post("/me", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def create_user(
         session: AsyncSession = Depends(get_session),
         current_user: CurrentUser = Depends(get_current_user)
@@ -29,5 +29,5 @@ async def create_user(
     """
     user = await UserRepository.create_user(current_user, session)
     if user is None:
-        return 'Пользователь уже создан'
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Пользователь уже создан")
     return {"message": "Создался новый пользователь", "user": user}

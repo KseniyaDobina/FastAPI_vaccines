@@ -140,3 +140,27 @@ async def second_user_vaccine(
     await test_db.refresh(vaccine)
 
     return vaccine
+
+
+@pytest_asyncio.fixture
+async def authenticated_client_new_user(client):
+    """
+    HTTP client с валидным (замоканным) токеном для пользователя,
+    которого ЕЩЁ НЕТ в БД - имитирует первый визит после логина в Keycloak.
+    """
+    async def override_get_current_user():
+        return CurrentUser(
+            sub="brand-new-keycloak-id",
+            username="brand_new_user",
+            email="brand_new@example.com",
+        )
+
+    old_user_override = app.dependency_overrides.get(get_current_user)
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    try:
+        yield client
+    finally:
+        if old_user_override is None:
+            app.dependency_overrides.pop(get_current_user, None)
+        else:
+            app.dependency_overrides[get_current_user] = old_user_override
