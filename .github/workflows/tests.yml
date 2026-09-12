@@ -29,4 +29,4 @@ jobs:
           pip install -r requirements.txt -r requirements_dev.txt
 
       - name: Run tests
-        run: pytest
+        run: pytest --cov=app_vaccines --cov-report=term-missing
