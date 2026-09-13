@@ -16,8 +16,8 @@ async def pagination_parameters(
 
 
 async def get_current_db_user(
-    current_user: CurrentUser = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+    current_user: CurrentUser = Depends(get_current_user), # noqa: B008
+    session: AsyncSession = Depends(get_session), # noqa: B008
 ) -> User:
     """
     Возвращает локального пользователя по данным из JWT.
@@ -33,7 +33,7 @@ async def get_current_db_user(
 
 
 async def get_current_user_id(
-    user: User = Depends(get_current_db_user),
+    user: User = Depends(get_current_db_user), # noqa: B008
 ) -> int:
     """
     Возвращает id локального пользователя по данным из JWT.

@@ -1,5 +1,6 @@
 import os
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # Дефолтные значения для локального запуска тестов, если .env не настроен.
 # setdefault() ничего не перезапишет, если переменная уже задана - ни через

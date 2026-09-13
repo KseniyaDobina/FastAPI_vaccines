@@ -1,15 +1,14 @@
 from datetime import date
+
 import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
 
 from app_vaccines.auth.dependencies import get_current_user
 from app_vaccines.main import app
 from app_vaccines.models.database import Base, get_session
 from app_vaccines.models.db_models import User, Vaccine
 from app_vaccines.models.schemas import CurrentUser
-
-from tests.config import test_engine, TestingSessionLocal
-
+from tests.config import TestingSessionLocal, test_engine
 
 
 @pytest_asyncio.fixture

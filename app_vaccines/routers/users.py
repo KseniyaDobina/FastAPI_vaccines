@@ -15,14 +15,17 @@ router = APIRouter(
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_user(session: AsyncSession = Depends(get_session), user: User = Depends(depends.get_current_db_user)):
+async def get_user(
+        session: AsyncSession = Depends(get_session), # noqa: B008
+        user: User = Depends(depends.get_current_db_user) # noqa: B008
+):
     return user
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_user(
-        session: AsyncSession = Depends(get_session),
-        current_user: CurrentUser = Depends(get_current_user)
+        session: AsyncSession = Depends(get_session), # noqa: B008
+        current_user: CurrentUser = Depends(get_current_user) # noqa: B008
 ):
     """
     Создание нового пользователя в сервисе

@@ -14,9 +14,9 @@ router = APIRouter(
 
 @router.get("", response_model=list[VaccineID])
 async def get_all_vaccines(
-        session: AsyncSession = Depends(get_session),
-        pagination: dict = Depends(depends.pagination_parameters),
-        user_id: int = Depends(depends.get_current_user_id)):
+        session: AsyncSession = Depends(get_session), # noqa: B008
+        pagination: dict = Depends(depends.pagination_parameters), # noqa: B008
+        user_id: int = Depends(depends.get_current_user_id)): # noqa: B008
     """
     Получение списка всех вакцин
     """
@@ -31,8 +31,8 @@ async def get_all_vaccines(
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=VaccineID)
 async def create_vaccine(
         vaccine: VaccineCreate,
-        user_id: int = Depends(depends.get_current_user_id),
-        session: AsyncSession = Depends(get_session)):
+        user_id: int = Depends(depends.get_current_user_id), # noqa: B008
+        session: AsyncSession = Depends(get_session)): # noqa: B008
     """
     Создание записи о новой вакцинации
     """
@@ -45,8 +45,8 @@ async def create_vaccine(
 @router.get("/{vaccine_id}", response_model=VaccineID)
 async def get_vaccine(
         vaccine_id: int,
-        user_id: int = Depends(depends.get_current_user_id),
-        session: AsyncSession = Depends(get_session)):
+        user_id: int = Depends(depends.get_current_user_id), # noqa: B008
+        session: AsyncSession = Depends(get_session)): # noqa: B008
     """
     Поиск вакцинации по id
     """
@@ -63,8 +63,8 @@ async def get_vaccine(
 async def put_vaccine(
         vaccine_id: int,
         vaccine: VaccineCreate,
-        user_id: int = Depends(depends.get_current_user_id),
-        session: AsyncSession = Depends(get_session)):
+        user_id: int = Depends(depends.get_current_user_id), # noqa: B008
+        session: AsyncSession = Depends(get_session)): # noqa: B008
     """
     Обновление информации о вакцинации
     """
@@ -81,8 +81,8 @@ async def put_vaccine(
 async def patch_vaccine(
         vaccine_id: int,
         vaccine: VaccineUpdate,
-        user_id: int = Depends(depends.get_current_user_id),
-        session: AsyncSession = Depends(get_session)):
+        user_id: int = Depends(depends.get_current_user_id), # noqa: B008
+        session: AsyncSession = Depends(get_session)): # noqa: B008
     """
     Обновление определенной информации о вакцине, можно указать только конкретное поле
     """
@@ -97,8 +97,8 @@ async def patch_vaccine(
 @router.delete("/{vaccine_id}", response_model=MessageAPIResponse)
 async def delete_vaccine(
         vaccine_id: int,
-        user_id: int = Depends(depends.get_current_user_id),
-        session: AsyncSession = Depends(get_session)):
+        user_id: int = Depends(depends.get_current_user_id), # noqa: B008
+        session: AsyncSession = Depends(get_session)): # noqa: B008
     """
     Удаление записи о вакцинации
     """
