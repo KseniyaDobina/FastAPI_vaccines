@@ -35,8 +35,7 @@ async def test_create_user_success(authenticated_client_new_user, test_db):
 
 @pytest.mark.asyncio
 async def test_create_user_conflict_if_already_exists(authenticated_client):
-    """
-    authenticated_client уже подразумевает test_user - пользователь
+    """authenticated_client уже подразумевает test_user - пользователь
     с sub="test-keycloak-id" уже существует в БД до этого запроса.
     """
     response = await authenticated_client.post("/users")

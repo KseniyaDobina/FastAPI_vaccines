@@ -13,8 +13,7 @@ from tests.config import TestingSessionLocal, test_engine
 
 @pytest_asyncio.fixture
 async def test_db():
-    """
-    Полностью изолированная БД на один тест
+    """Полностью изолированная БД на один тест
     """
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
@@ -33,8 +32,7 @@ async def test_db():
 
 @pytest_asyncio.fixture
 async def client(test_db):
-    """
-    Неавторизованный HTTP client
+    """Неавторизованный HTTP client
     """
 
     async def override_get_db():
@@ -126,8 +124,7 @@ async def second_user_vaccine(
 
 @pytest_asyncio.fixture
 async def authenticated_client_new_user(client):
-    """
-    HTTP client с валидным (замоканным) токеном для пользователя,
+    """HTTP client с валидным (замоканным) токеном для пользователя,
     которого ЕЩЁ НЕТ в БД - имитирует первый визит после логина в Keycloak.
     """
     async def override_get_current_user():

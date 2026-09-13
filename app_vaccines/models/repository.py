@@ -15,8 +15,7 @@ from app_vaccines.models.schemas import (
 
 
 class VaccineRepository:
-    """
-    Класс для получения информации о вакцинах
+    """Класс для получения информации о вакцинах
     """
 
     @classmethod
@@ -46,8 +45,7 @@ class VaccineRepository:
 
 
 class VaccineService:
-    """
-    Класс для добавления, изменения вакцин и удаления
+    """Класс для добавления, изменения вакцин и удаления
     """
 
     @classmethod

@@ -27,8 +27,7 @@ async def create_user(
         session: AsyncSession = Depends(get_session), # noqa: B008
         current_user: CurrentUser = Depends(get_current_user) # noqa: B008
 ):
-    """
-    Создание нового пользователя в сервисе
+    """Создание нового пользователя в сервисе
     """
     user = await UserRepository.create_user(current_user, session)
     if user is None:

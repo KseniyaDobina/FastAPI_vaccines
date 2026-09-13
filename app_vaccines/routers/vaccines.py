@@ -17,10 +17,8 @@ async def get_all_vaccines(
         session: AsyncSession = Depends(get_session), # noqa: B008
         pagination: dict = Depends(depends.pagination_parameters), # noqa: B008
         user_id: int = Depends(depends.get_current_user_id)): # noqa: B008
+    """Получение списка всех вакцин
     """
-    Получение списка всех вакцин
-    """
-
     skip = pagination["skip"]
     limit = pagination["limit"]
     vaccines = await VaccineService.get_vaccines(user_id, skip, limit, session)
@@ -33,10 +31,8 @@ async def create_vaccine(
         vaccine: VaccineCreate,
         user_id: int = Depends(depends.get_current_user_id), # noqa: B008
         session: AsyncSession = Depends(get_session)): # noqa: B008
+    """Создание записи о новой вакцинации
     """
-    Создание записи о новой вакцинации
-    """
-
     new_vaccine = await VaccineService.add_vaccine(vaccine, user_id, session)
 
     return new_vaccine
@@ -47,10 +43,8 @@ async def get_vaccine(
         vaccine_id: int,
         user_id: int = Depends(depends.get_current_user_id), # noqa: B008
         session: AsyncSession = Depends(get_session)): # noqa: B008
+    """Поиск вакцинации по id
     """
-    Поиск вакцинации по id
-    """
-
     vaccine = await VaccineService.get_vaccine_by_id(vaccine_id, user_id, session)
 
     if vaccine is None:
@@ -65,10 +59,8 @@ async def put_vaccine(
         vaccine: VaccineCreate,
         user_id: int = Depends(depends.get_current_user_id), # noqa: B008
         session: AsyncSession = Depends(get_session)): # noqa: B008
+    """Обновление информации о вакцинации
     """
-    Обновление информации о вакцинации
-    """
-
     new_vaccine_db = await VaccineService.update_vaccine(vaccine_id, vaccine, user_id, session)
 
     if new_vaccine_db is None:
@@ -83,8 +75,7 @@ async def patch_vaccine(
         vaccine: VaccineUpdate,
         user_id: int = Depends(depends.get_current_user_id), # noqa: B008
         session: AsyncSession = Depends(get_session)): # noqa: B008
-    """
-    Обновление определенной информации о вакцине, можно указать только конкретное поле
+    """Обновление определенной информации о вакцине, можно указать только конкретное поле
     """
     updated_vaccine = await VaccineService.update_vaccine(vaccine_id, vaccine, user_id, session)
 
@@ -99,10 +90,8 @@ async def delete_vaccine(
         vaccine_id: int,
         user_id: int = Depends(depends.get_current_user_id), # noqa: B008
         session: AsyncSession = Depends(get_session)): # noqa: B008
+    """Удаление записи о вакцинации
     """
-    Удаление записи о вакцинации
-    """
-
     result = await VaccineService.delete_vaccine(vaccine_id, user_id, session)
 
     if result:
