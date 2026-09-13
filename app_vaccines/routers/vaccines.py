@@ -1,9 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app_vaccines.models.database import get_session
-from app_vaccines.models.repository import VaccineRepository, VaccineService
-from app_vaccines.models.schemas import VaccineCreate, VaccineUpdate, VaccineID, MessageAPIResponse
+from app_vaccines.models.repository import VaccineService
+from app_vaccines.models.schemas import MessageAPIResponse, VaccineCreate, VaccineID, VaccineUpdate
 from app_vaccines.routers import depends
 
 router = APIRouter(

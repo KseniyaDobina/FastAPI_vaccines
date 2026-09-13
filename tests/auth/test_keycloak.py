@@ -4,11 +4,10 @@ import httpx
 import jwt
 import pytest
 from cryptography.hazmat.primitives.asymmetric import rsa
+from fastapi import HTTPException
 
 from app_vaccines.auth import keycloak
 from app_vaccines.config.settings import settings
-
-from fastapi import HTTPException
 
 TEST_KID = "test-kid-1"
 

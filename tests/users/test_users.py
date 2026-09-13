@@ -2,7 +2,6 @@ import pytest
 from sqlalchemy import select
 
 from app_vaccines.models.db_models import User
-from tests.config import client, test_db, authenticated_client, test_user, authenticated_client_new_user
 
 
 @pytest.mark.asyncio

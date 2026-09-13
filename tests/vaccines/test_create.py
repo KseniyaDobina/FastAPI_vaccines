@@ -1,8 +1,5 @@
 import pytest
 
-from tests.config import client, test_db, authenticated_client, test_user
-from tests.conftest import vaccine_test_json_data
-
 
 @pytest.mark.asyncio
 async def test_post_without_data(authenticated_client):

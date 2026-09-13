@@ -1,8 +1,5 @@
 import pytest
 
-from tests.config import client, test_db, authenticated_client, test_user
-from tests.conftest import vaccine_in_db
-
 
 @pytest.mark.asyncio
 async def test_get_all_vaccines(authenticated_client):

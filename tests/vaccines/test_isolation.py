@@ -1,7 +1,5 @@
 import pytest
 
-from tests.config import client, test_db, authenticated_client, second_user_vaccine, second_user
-
 
 @pytest.mark.asyncio
 async def test_user_cannot_get_another_users_vaccine(
