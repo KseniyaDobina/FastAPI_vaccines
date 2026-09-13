@@ -28,5 +28,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements_dev.txt
 
+      - name: Lint with ruff
+        run: ruff check .
+
       - name: Run tests
         run: pytest --cov=app_vaccines --cov-report=term-missing
