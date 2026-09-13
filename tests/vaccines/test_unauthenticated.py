@@ -2,7 +2,7 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    "method,url",
+    ("method", "url"),
     [
         ("get", "/vaccines"),
         ("post", "/vaccines"),

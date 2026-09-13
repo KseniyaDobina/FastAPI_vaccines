@@ -6,8 +6,7 @@ from app_vaccines.models.db_models import Vaccine
 
 @pytest.mark.asyncio
 async def test_put_vaccine(authenticated_client, vaccine_in_db, test_db, vaccine_test_new_data):
-    """Обновление существующей вакцинации
-    """
+    """Обновление существующей вакцинации."""
     vaccine_id = vaccine_in_db.id
     response = await authenticated_client.put(f"/vaccines/{vaccine_id}", json=vaccine_test_new_data)
 
@@ -54,8 +53,7 @@ async def test_put_vaccine(authenticated_client, vaccine_in_db, test_db, vaccine
 
 @pytest.mark.asyncio
 async def test_put_vaccine_not_found(authenticated_client, vaccine_test_new_data):
-    """Обновление вакцинации, которой не существует
-    """
+    """Обновление вакцинации, которой не существует."""
     response = await authenticated_client.put("/vaccines/999999", json=vaccine_test_new_data)
 
     assert response.status_code == 404
@@ -64,9 +62,7 @@ async def test_put_vaccine_not_found(authenticated_client, vaccine_test_new_data
 
 @pytest.mark.asyncio
 async def test_patch_vaccine(authenticated_client, vaccine_in_db, test_db):
-    """Частичное обновление существующей вакцинации.
-    Проверка, что изменилось только переданное поле.
-    """
+    """Частичное обновление существующей вакцинации. Проверка, что изменилось только переданное поле."""
     response = await authenticated_client.patch(f"/vaccines/{vaccine_in_db.id}", json={"city": "Espoo"})
 
     assert response.status_code == 200
@@ -108,8 +104,7 @@ async def test_patch_vaccine(authenticated_client, vaccine_in_db, test_db):
 
 @pytest.mark.asyncio
 async def test_patch_vaccine_multiple_fields(authenticated_client, vaccine_in_db):
-    """Проверка частичное обновление нескольких полей.
-    """
+    """Проверка частичное обновление нескольких полей."""
     vaccine_id = vaccine_in_db.id
     response = await authenticated_client.patch(
         f"/vaccines/{vaccine_id}",

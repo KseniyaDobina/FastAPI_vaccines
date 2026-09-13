@@ -3,8 +3,7 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_post_without_data(authenticated_client):
-    """Проверка валидации входных данных
-    """
+    """Проверка валидации входных данных."""
     response = await authenticated_client.post("/vaccines")
 
     assert response.status_code == 422
@@ -12,8 +11,7 @@ async def test_post_without_data(authenticated_client):
 
 @pytest.mark.asyncio
 async def test_post_create_vaccine(authenticated_client, vaccine_test_json_data):
-    """Проверка создания записи о вакцинации
-    """
+    """Проверка создания записи о вакцинации."""
     response = await authenticated_client.post(
         "/vaccines",
         json=vaccine_test_json_data,
@@ -36,7 +34,7 @@ async def test_post_create_vaccine(authenticated_client, vaccine_test_json_data)
 
 
 @pytest.mark.parametrize(
-    "field,value",
+    ("field", "value"),
     [
         ("disease", "ab"),
         ("vaccine_name", "ab"),
@@ -64,7 +62,7 @@ async def test_create_vaccine_min_length_validation(
 
 
 @pytest.mark.parametrize(
-    "field,length",
+    ("field", "length"),
     [
         ("disease", 101),
         ("vaccine_name", 101),
@@ -95,8 +93,7 @@ async def test_create_vaccine_max_length_validation(
 
 @pytest.mark.asyncio
 async def test_post_create_vaccine_without_notes(authenticated_client, vaccine_test_json_data):
-    """Проверка создания вакцинации без notes.
-    """
+    """Проверка создания вакцинации без notes."""
     vaccine_test_json_data.pop("notes")
     response = await authenticated_client.post(
         "/vaccines",
@@ -111,8 +108,7 @@ async def test_post_create_vaccine_without_notes(authenticated_client, vaccine_t
 
 @pytest.mark.asyncio
 async def test_post_create_vaccine_without_expiration_date(authenticated_client, vaccine_test_json_data):
-    """Проверка создание вакцинации без expiration_date
-    """
+    """Проверка создание вакцинации без expiration_date."""
     vaccine_test_json_data["expiration_date"] = None
     response = await authenticated_client.post(
         "/vaccines",
@@ -126,7 +122,7 @@ async def test_post_create_vaccine_without_expiration_date(authenticated_client,
 
 
 @pytest.mark.parametrize(
-    "field,value",
+    ("field", "value"),
     [
         ("vaccination_date", "not-a-date"),
         ("vaccination_date", "20.08.2026"),

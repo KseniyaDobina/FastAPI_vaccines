@@ -13,8 +13,7 @@ from tests.config import TestingSessionLocal, test_engine
 
 @pytest_asyncio.fixture
 async def test_db():
-    """Полностью изолированная БД на один тест
-    """
+    """Полностью изолированная БД на один тест."""
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
@@ -32,9 +31,7 @@ async def test_db():
 
 @pytest_asyncio.fixture
 async def client(test_db):
-    """Неавторизованный HTTP client
-    """
-
+    """Неавторизованный HTTP client."""
     async def override_get_db():
         yield test_db
 

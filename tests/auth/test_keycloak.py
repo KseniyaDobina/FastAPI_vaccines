@@ -15,22 +15,19 @@ TEST_KID = "test-kid-1"
 
 @pytest.fixture
 def rsa_private_key():
-    """'Правильный' ключ - имитация настоящего ключа Keycloak.
-    """
+    """'Правильный' ключ - имитация настоящего ключа Keycloak."""
     return rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
 
 @pytest.fixture
 def other_rsa_private_key():
-    """Второй, 'чужой' ключ - имитация злоумышленника без доступа к настоящему ключу Keycloak.
-    """
+    """Второй, 'чужой' ключ - имитация злоумышленника без доступа к настоящему ключу Keycloak."""
     return rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
 
 @pytest.fixture
 def jwks_document(rsa_private_key):
-    """превращает публичную часть тестового ключа в тот самый JSON-формат, который в реальности отдаёт Keycloak
-    """
+    """превращает публичную часть тестового ключа в тот самый JSON-формат, который в реальности отдаёт Keycloak."""
     # обратная операция к тому from_jwk(...)
     public_jwk = jwt.algorithms.RSAAlgorithm.to_jwk(
         rsa_private_key.public_key(), as_dict=True
@@ -51,7 +48,7 @@ def oidc_config():
 
 class _FakeResponse:
     """"Муляж", который притворяется httpx.Response, но на самом деле просто хранит один заранее заготовленный словарь
-    (_json_data) и отдаёт его через .json()
+    (_json_data) и отдаёт его через .json().
     """
 
     def __init__(self, json_data):
@@ -70,7 +67,7 @@ def reset_keycloak_cache():
     (autouse=True, то есть применяется ко всем тестам в файле автоматически) — обнуляет модульные кэши
     _oidc_config/_jwks_keys до и после каждого теста. Без этого первый тест реально сходил бы в "сеть" (замоканную),
     закэшировал бы ключ, а все следующие тесты тихо работали бы с этим кэшем — то есть по факту вообще
-    не проверял бы код внутри _fetch_jwks
+    не проверял бы код внутри _fetch_jwks.
     """
     keycloak._oidc_config = None
     keycloak._jwks_keys = {}
@@ -102,7 +99,7 @@ def mock_keycloak_network(monkeypatch, oidc_config, jwks_document):
 
 def make_token(private_key, kid=TEST_KID, **overrides):
     """Маленькая "фабрика" тестовых токенов с разумными дефолтами (правильный iss/aud, срок годности 5 минут),
-    где конкретный тест переопределяет только то, что хочет сломать (exp, aud, iss, kid)
+    где конкретный тест переопределяет только то, что хочет сломать (exp, aud, iss, kid).
     """
     now = int(time.time())
     payload = {
@@ -120,8 +117,7 @@ def make_token(private_key, kid=TEST_KID, **overrides):
 
 @pytest.mark.asyncio
 async def test_decode_token_valid(mock_keycloak_network, rsa_private_key):
-    """Всё как надо, токен принят, payload с правильными полями
-    """
+    """Всё как надо, токен принят, payload с правильными полями."""
     token = make_token(rsa_private_key)
 
     payload = await keycloak.decode_token(token)
@@ -132,8 +128,7 @@ async def test_decode_token_valid(mock_keycloak_network, rsa_private_key):
 
 @pytest.mark.asyncio
 async def test_decode_token_expired(mock_keycloak_network, rsa_private_key):
-    """Просроченный токен отклонён
-    """
+    """Просроченный токен отклонён."""
     token = make_token(rsa_private_key, exp=int(time.time()) - 60)
 
     with pytest.raises(HTTPException) as exc_info:
@@ -144,8 +139,7 @@ async def test_decode_token_expired(mock_keycloak_network, rsa_private_key):
 
 @pytest.mark.asyncio
 async def test_decode_token_wrong_audience(mock_keycloak_network, rsa_private_key):
-    """Токен не для нашего клиента / не от нашего Keycloak отклонён, даже если подпись математически верна
-    """
+    """Токен не для нашего клиента / не от нашего Keycloak отклонён, даже если подпись математически верна."""
     token = make_token(rsa_private_key, aud="какой-то-другой-клиент")
 
     with pytest.raises(HTTPException) as exc_info:
@@ -157,7 +151,7 @@ async def test_decode_token_wrong_audience(mock_keycloak_network, rsa_private_ke
 @pytest.mark.asyncio
 async def test_decode_token_wrong_issuer(mock_keycloak_network, rsa_private_key):
     """Токен подписан чужим ключом, но с kid, который совпадает с настоящим.
-    Проверяет, что код реально сверяет подпись математически, а не просто смотрит на kid "для галочки"
+    Проверяет, что код реально сверяет подпись математически, а не просто смотрит на kid "для галочки".
     """
     token = make_token(rsa_private_key, iss="http://не-наш-keycloak/realms/чужой")
 
@@ -184,7 +178,7 @@ async def test_decode_token_forged_signature(mock_keycloak_network, other_rsa_pr
 @pytest.mark.asyncio
 async def test_decode_token_unknown_kid(mock_keycloak_network, rsa_private_key):
     """Токен ссылается на ключ, которого просто нет в JWKS (ни изначально, ни после попытки обновить кэш) —
-    должен упасть в 401, а не в необработанное исключение
+    должен упасть в 401, а не в необработанное исключение.
     """
     token = make_token(rsa_private_key, kid="кто-то-совсем-другой")
 
@@ -196,8 +190,7 @@ async def test_decode_token_unknown_kid(mock_keycloak_network, rsa_private_key):
 
 @pytest.mark.asyncio
 async def test_oidc_config_is_cached_between_calls(mock_keycloak_network):
-    """Подтверждает, что кэширование реально работает: второй вызов не идёт повторно в сеть
-    """
+    """Подтверждает, что кэширование реально работает: второй вызов не идёт повторно в сеть."""
     await keycloak.get_oidc_config()
     await keycloak.get_oidc_config()
 

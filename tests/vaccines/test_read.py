@@ -3,8 +3,7 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_get_all_vaccines(authenticated_client):
-    """Тест на получение списка всех записей о вакцинации
-    """
+    """Тест на получение списка всех записей о вакцинации."""
     response = await authenticated_client.get("/vaccines")
     data = response.json()
 
@@ -14,8 +13,7 @@ async def test_get_all_vaccines(authenticated_client):
 
 @pytest.mark.asyncio
 async def test_get_vaccine(authenticated_client, vaccine_in_db):
-    """Получение существующей вакцинации по ID
-    """
+    """Получение существующей вакцинации по ID."""
     response = await authenticated_client.get(
         f"/vaccines/{vaccine_in_db.id}"
     )
@@ -41,8 +39,7 @@ async def test_get_vaccine(authenticated_client, vaccine_in_db):
 
 @pytest.mark.asyncio
 async def test_get_vaccine_not_found(authenticated_client):
-    """Получение вакцинации, которой не существует
-    """
+    """Получение вакцинации, которой не существует."""
     response = await authenticated_client.get("/vaccines/999999")
 
     assert response.status_code == 404
@@ -51,8 +48,7 @@ async def test_get_vaccine_not_found(authenticated_client):
 
 @pytest.mark.asyncio
 async def test_get_all_vaccines_default_pagination(authenticated_client):
-    """Без параметров запрос должен отработать с дефолтными skip=0, limit=10
-    """
+    """Без параметров запрос должен отработать с дефолтными skip=0, limit=10."""
     response = await authenticated_client.get("/vaccines")
 
     assert response.status_code == 200
@@ -62,8 +58,7 @@ async def test_get_all_vaccines_default_pagination(authenticated_client):
 @pytest.mark.parametrize("limit", [1, 20])
 @pytest.mark.asyncio
 async def test_get_all_vaccines_accepts_limit_within_bounds(authenticated_client, limit):
-    """limit=1 и limit=20 - границы допустимого диапазона, должны приниматься
-    """
+    """limit=1 и limit=20 - границы допустимого диапазона, должны приниматься."""
     response = await authenticated_client.get("/vaccines", params={"limit": limit})
 
     assert response.status_code == 200
@@ -72,8 +67,7 @@ async def test_get_all_vaccines_accepts_limit_within_bounds(authenticated_client
 @pytest.mark.parametrize("limit", [-1, 0, 21, 1000])
 @pytest.mark.asyncio
 async def test_get_all_vaccines_rejects_limit_out_of_bounds(authenticated_client, limit):
-    """limit=0 и limit>20 должны отклоняться на уровне валидации запроса
-    """
+    """limit=0 и limit>20 должны отклоняться на уровне валидации запроса."""
     response = await authenticated_client.get("/vaccines", params={"limit": limit})
 
     assert response.status_code == 422
@@ -84,8 +78,7 @@ async def test_get_all_vaccines_rejects_limit_out_of_bounds(authenticated_client
 
 @pytest.mark.asyncio
 async def test_get_all_vaccines_accepts_skip_zero(authenticated_client):
-    """skip=0 - граница допустимого диапазона, должен приниматься
-    """
+    """skip=0 - граница допустимого диапазона, должен приниматься."""
     response = await authenticated_client.get("/vaccines", params={"skip": 0})
 
     assert response.status_code == 200
@@ -94,8 +87,7 @@ async def test_get_all_vaccines_accepts_skip_zero(authenticated_client):
 @pytest.mark.parametrize("skip", [-1, -100])
 @pytest.mark.asyncio
 async def test_get_all_vaccines_rejects_negative_skip(authenticated_client, skip):
-    """Отрицательный skip должен отклоняться на уровне валидации запроса
-    """
+    """Отрицательный skip должен отклоняться на уровне валидации запроса."""
     response = await authenticated_client.get("/vaccines", params={"skip": skip})
 
     assert response.status_code == 422

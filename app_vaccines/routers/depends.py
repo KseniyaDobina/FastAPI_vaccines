@@ -19,8 +19,7 @@ async def get_current_db_user(
     current_user: CurrentUser = Depends(get_current_user), # noqa: B008
     session: AsyncSession = Depends(get_session), # noqa: B008
 ) -> User:
-    """Возвращает локального пользователя по данным из JWT.
-    """
+    """Возвращает локального пользователя по данным из JWT."""
     user = await UserRepository.get_user_id(current_user, session)
 
     if user is None:
@@ -34,6 +33,5 @@ async def get_current_db_user(
 async def get_current_user_id(
     user: User = Depends(get_current_db_user), # noqa: B008
 ) -> int:
-    """Возвращает id локального пользователя по данным из JWT.
-    """
+    """Возвращает id локального пользователя по данным из JWT."""
     return user.id

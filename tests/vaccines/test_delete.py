@@ -6,8 +6,7 @@ from app_vaccines.models.db_models import Vaccine
 
 @pytest.mark.asyncio
 async def test_delete_vaccine(authenticated_client, vaccine_in_db, test_db):
-    """Удаление существующей вакцинации
-    """
+    """Удаление существующей вакцинации."""
     vaccine_id = vaccine_in_db.id
     response = await authenticated_client.delete(f"/vaccines/{vaccine_id}")
 
@@ -32,8 +31,7 @@ async def test_delete_vaccine(authenticated_client, vaccine_in_db, test_db):
 
 @pytest.mark.asyncio
 async def test_delete_vaccine_not_found(authenticated_client):
-    """Удаление вакцинации, которой не существует
-    """
+    """Удаление вакцинации, которой не существует."""
     response = await authenticated_client.delete(
         "/vaccines/999999"
     )
