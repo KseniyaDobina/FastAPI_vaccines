@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi import HTTPException
 
 from app_vaccines.auth import keycloak
+from app_vaccines.auth.dependencies import get_current_user
 from app_vaccines.config.settings import settings
 
 TEST_KID = "test-kid-1"
@@ -325,3 +326,28 @@ async def test_decode_token_retries_once_if_key_still_missing_after_first_refres
 
     assert payload["sub"] == "test-user-id"
     assert calls["jwks"] == 2  # понадобилось два похода в сеть
+
+@pytest.mark.asyncio
+async def test_get_current_user_rejects_token_missing_required_claims(
+        mock_keycloak_network, rsa_private_key
+):
+    """
+    Токен подписан корректным ключом, проходит decode_token без проблем,
+    но не содержит обязательного поля 'sub' - CurrentUser.model_validate
+    должен упасть с ValidationError, а get_current_user обязана превратить
+    это в 401, а не дать 500 всплыть наружу.
+    """
+    now = int(time.time())
+    payload = {
+        "iss": keycloak.ISSUER,
+        "aud": settings.KEYCLOAK_CLIENT_ID,
+        # "sub" намеренно отсутствует
+        "iat": now,
+        "exp": now + 300,
+    }
+    token = jwt.encode(payload, rsa_private_key, algorithm="RS256", headers={"kid": TEST_KID})
+
+    with pytest.raises(HTTPException) as exc_info:
+        await get_current_user(token)
+
+    assert exc_info.value.status_code == 401
