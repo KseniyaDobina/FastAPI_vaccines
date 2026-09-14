@@ -32,7 +32,7 @@ jobs:
         run: ruff check .
 
       - name: Type check with mypy
-        run: mypy app_vaccines/ --exit-zero
+        run: mypy app_vaccines/
 
       - name: Run tests
         run: pytest --cov=app_vaccines --cov-report=term-missing
