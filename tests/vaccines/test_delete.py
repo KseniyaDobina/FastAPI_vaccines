@@ -14,7 +14,7 @@ async def test_delete_vaccine(authenticated_client, vaccine_in_db, test_db):
     data = response.json()
 
     assert "message" in data
-    assert data["message"] == f"Удалена вакцина №{vaccine_id}"
+    assert data["message"] == f"Вакцина удалена."
     # Проверяем, что запись действительно удалена
     result = await test_db.execute(
         select(Vaccine).where(

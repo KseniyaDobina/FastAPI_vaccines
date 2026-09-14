@@ -18,9 +18,9 @@ async def test_create_user_success(authenticated_client_new_user, test_db):
     assert response.status_code == 201
 
     body = response.json()
-    assert body["user"]["username"] == "brand_new_user"
-    assert body["user"]["email"] == "brand_new@example.com"
-    assert "id" in body["user"]
+    assert body["username"] == "brand_new_user"
+    assert body["email"] == "brand_new@example.com"
+    assert "id" in body
 
     # Проверяем не только ответ API, но и реальное состояние БД -
     # чтобы убедиться, что пользователь не просто "как будто создался"
