@@ -1,11 +1,10 @@
-# app_vaccines/auth/keycloak.py
-
 import asyncio
+from typing import cast
 
 import httpx
 import jwt
 from fastapi import HTTPException, status
-from jwt.algorithms import RSAAlgorithm
+from jwt.algorithms import RSAAlgorithm, RSAPublicKey
 
 from app_vaccines.config.settings import settings
 
@@ -13,7 +12,7 @@ ISSUER = f"{settings.KEYCLOAK_URL}/realms/{settings.KEYCLOAK_REALM}"
 OIDC_CONFIG_URL = f"{ISSUER}/.well-known/openid-configuration"
 
 _oidc_config: dict | None = None
-_jwks_keys: dict[str, RSAAlgorithm] = {}  # kid -> публичный ключ
+_jwks_keys: dict[str, RSAPublicKey] = {}  # kid -> публичный ключ
 _lock = asyncio.Lock()
 
 
@@ -29,7 +28,7 @@ async def get_oidc_config() -> dict:
     return _oidc_config
 
 
-async def _fetch_jwks() -> dict[str, RSAAlgorithm]:
+async def _fetch_jwks() -> dict[str, RSAPublicKey]:
     """Ходит в сеть за JWKS и разбирает ключи. Сеть - только здесь."""
     config = await get_oidc_config()
 
@@ -39,10 +38,10 @@ async def _fetch_jwks() -> dict[str, RSAAlgorithm]:
         jwks = response.json()
 
     # from_jwk - чистый разбор JSON в объект ключа, без сети
-    return {key["kid"]: RSAAlgorithm.from_jwk(key) for key in jwks["keys"]}
+    return {key["kid"]: cast(RSAPublicKey, RSAAlgorithm.from_jwk(key)) for key in jwks["keys"]}
 
 
-async def _get_signing_key(kid: str) -> RSAAlgorithm:
+async def _get_signing_key(kid: str) -> RSAPublicKey:
     global _jwks_keys
 
     if kid not in _jwks_keys:

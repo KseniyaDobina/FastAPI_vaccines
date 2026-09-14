@@ -10,4 +10,4 @@ class Settings(BaseSettings):
     KEYCLOAK_CLIENT_ID: str
 
 
-settings = Settings() # type: ignore[call-arg]  -- значения приходят из .env/env, а не из вызова конструктора
+settings = Settings() # type: ignore[call-arg] # -- значения приходят из .env/env, а не из вызова конструктора

@@ -1,7 +1,8 @@
 from collections.abc import Sequence
+from typing import cast
 
 from fastapi import HTTPException, status
-from sqlalchemy import delete, select
+from sqlalchemy import CursorResult, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app_vaccines.models.db_models import User, Vaccine
@@ -38,8 +39,8 @@ class VaccineRepository:
     @classmethod
     async def delete_vaccine(cls, vaccine_id: int, user: int, session: AsyncSession) -> bool:
         query = delete(Vaccine).where(Vaccine.id == vaccine_id, Vaccine.user_id == user)
-        result = await session.execute(query)
         # result.rowcount показывает, сколько строк было затронуто (0 или 1)
+        result = cast(CursorResult, await session.execute(query))
         return result.rowcount > 0
 
 

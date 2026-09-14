@@ -26,7 +26,7 @@ ignore = [
 
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101", "D"] # assert в тестах это не ошибка
+"tests/*" = ["S101", "D"] # Assert в тестах это не ошибка
 #"tests/*" = ["B008"] Depends(...) в дефолтных значениях - нормальный паттерн FastAPI, а не баг. Не в тестах убрала проверку точечно
 
 [tool.mypy]
