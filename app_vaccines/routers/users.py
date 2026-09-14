@@ -18,17 +18,17 @@ router = APIRouter(
 async def get_user(
         session: AsyncSession = Depends(get_session), # noqa: B008
         user: User = Depends(depends.get_current_db_user) # noqa: B008
-):
+) -> User:
     return user
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
 async def create_user(
         session: AsyncSession = Depends(get_session), # noqa: B008
         current_user: CurrentUser = Depends(get_current_user) # noqa: B008
-):
+) -> UserResponse:
     """Создание нового пользователя в сервисе."""
     user = await UserRepository.create_user(current_user, session)
     if user is None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Пользователь уже создан")
-    return {"message": "Создался новый пользователь", "user": user}
+    return user
