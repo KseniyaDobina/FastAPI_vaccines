@@ -1,4 +1,6 @@
 from datetime import date
+from typing import Self
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
@@ -17,14 +19,9 @@ class VaccineCreate(BaseModel):
     notes: str | None = Field(default=None, min_length=1, max_length=300)
 
     @model_validator(mode="after")
-    def validate_expiration_date(self):
-        if (
-                self.expiration_date is not None
-                and self.expiration_date <= self.vaccination_date
-        ):
-            raise ValueError(
-                "expiration_date должна быть позже, чем vaccination_date"
-            )
+    def validate_expiration_date(self) -> Self:
+        if self.expiration_date is not None and self.expiration_date <= self.vaccination_date:
+            raise ValueError("expiration_date должна быть позже, чем vaccination_date")
 
         return self
 
@@ -52,15 +49,13 @@ class VaccineUpdate(BaseModel):
     notes: str | None = Field(default=None, min_length=1, max_length=300)
 
     @model_validator(mode="after")
-    def validate_dates(self):
+    def validate_dates(self) -> Self:
         if (
-                self.vaccination_date is not None
-                and self.expiration_date is not None
-                and self.expiration_date <= self.vaccination_date
+            self.vaccination_date is not None
+            and self.expiration_date is not None
+            and self.expiration_date <= self.vaccination_date
         ):
-            raise ValueError(
-                "expiration_date должна быть позже, чем vaccination_date"
-            )
+            raise ValueError("expiration_date должна быть позже, чем vaccination_date")
 
         return self
 

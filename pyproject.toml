@@ -1,0 +1,43 @@
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle errors
+    "F", # pyflakes (неиспользуемые импорты, переменные и т.п.)
+    "I", # isort (сортировка импортов)
+    "UP", # pyupgrade (устаревший синтаксис Python)
+    "B", # flake8-bugbear (частые логические ошибки)
+    "W", # Слишком длинная строка
+    "S", # Безопасность
+    "SIM", # Помогает упрощать код
+#    "D",
+    "PT"
+]
+
+ignore = [
+    "E501",  # длина строки - её и так контролирует line-length, дублировать не нужно
+    "D100",  # Missing docstring in public module - не нужно описание в начале каждого файла
+    "D104",  # Missing docstring in public package (__init__.py) - тем более для пустых __init__
+    "D203",  # конфликтует с D211 (blank line before/after class docstring) - берём только одно
+    "D213",  # конфликтует с D212 - тоже берём только одно, иначе противоречат друг другу
+]
+
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "D"] # Assert в тестах это не ошибка
+#"tests/*" = ["B008"] Depends(...) в дефолтных значениях - нормальный паттерн FastAPI, а не баг. Не в тестах убрала проверку точечно
+
+[tool.mypy]
+python_version = "3.13"
+plugins = ["sqlalchemy.ext.mypy.plugin"]
+
+# На старте - мягкий режим
+ignore_missing_imports = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true

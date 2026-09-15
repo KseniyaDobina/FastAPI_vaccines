@@ -2,16 +2,11 @@ import pytest
 from sqlalchemy import select
 
 from app_vaccines.models.db_models import Vaccine
-from tests.config import client, test_db, authenticated_client, test_user
-from tests.conftest import vaccine_in_db, vaccine_test_new_data
 
 
 @pytest.mark.asyncio
 async def test_put_vaccine(authenticated_client, vaccine_in_db, test_db, vaccine_test_new_data):
-    """
-    Обновление существующей вакцинации
-    """
-
+    """Обновление существующей вакцинации."""
     vaccine_id = vaccine_in_db.id
     response = await authenticated_client.put(f"/vaccines/{vaccine_id}", json=vaccine_test_new_data)
 
@@ -58,10 +53,7 @@ async def test_put_vaccine(authenticated_client, vaccine_in_db, test_db, vaccine
 
 @pytest.mark.asyncio
 async def test_put_vaccine_not_found(authenticated_client, vaccine_test_new_data):
-    """
-    Обновление вакцинации, которой не существует
-    """
-
+    """Обновление вакцинации, которой не существует."""
     response = await authenticated_client.put("/vaccines/999999", json=vaccine_test_new_data)
 
     assert response.status_code == 404
@@ -70,11 +62,7 @@ async def test_put_vaccine_not_found(authenticated_client, vaccine_test_new_data
 
 @pytest.mark.asyncio
 async def test_patch_vaccine(authenticated_client, vaccine_in_db, test_db):
-    """
-        Частичное обновление существующей вакцинации.
-        Проверка, что изменилось только переданное поле.
-        """
-
+    """Частичное обновление существующей вакцинации. Проверка, что изменилось только переданное поле."""
     response = await authenticated_client.patch(f"/vaccines/{vaccine_in_db.id}", json={"city": "Espoo"})
 
     assert response.status_code == 200
@@ -116,10 +104,7 @@ async def test_patch_vaccine(authenticated_client, vaccine_in_db, test_db):
 
 @pytest.mark.asyncio
 async def test_patch_vaccine_multiple_fields(authenticated_client, vaccine_in_db):
-    """
-    Проверка частичное обновление нескольких полей.
-    """
-
+    """Проверка частичное обновление нескольких полей."""
     vaccine_id = vaccine_in_db.id
     response = await authenticated_client.patch(
         f"/vaccines/{vaccine_id}",
@@ -226,16 +211,6 @@ async def test_patch_rejects_expiration_date_before_existing_vaccination_date(
         authenticated_client,
         vaccine_in_db,
 ):
-    """
-    БАГ: если в PATCH передать только expiration_date (без vaccination_date),
-    Pydantic-валидатор VaccineUpdate ничего не проверяет, т.к. видит только
-    одно поле. Проверка "expiration_date > vaccination_date" происходит уже
-    в VaccineService.update_vaccine и падает голым ValueError, который никто
-    не ловит -> FastAPI отдаёт 500 вместо ожидаемого 422/400.
-
-    vaccine_in_db.vaccination_date == 2026-08-20 (см. vaccine_test_data),
-    поэтому expiration_date раньше этой даты должен быть отклонён.
-    """
     response = await authenticated_client.patch(
         f"/vaccines/{vaccine_in_db.id}",
         json={"expiration_date": "2026-01-01"},

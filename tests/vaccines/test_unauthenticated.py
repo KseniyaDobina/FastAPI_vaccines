@@ -1,10 +1,8 @@
 import pytest
 
-from tests.config import client, test_db
-
 
 @pytest.mark.parametrize(
-    "method,url",
+    ("method", "url"),
     [
         ("get", "/vaccines"),
         ("post", "/vaccines"),
