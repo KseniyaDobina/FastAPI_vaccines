@@ -3,16 +3,12 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app_vaccines.models.database import create_database
 from app_vaccines.routers import users, vaccines
 
 
 @asynccontextmanager
 async def lifespan_async(application: FastAPI)  -> AsyncGenerator[None]:
-    await create_database()
     yield
-    # Пока ничего не удаляем
-    # await delete_database()
 
 
 app = FastAPI(

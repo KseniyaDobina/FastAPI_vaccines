@@ -12,13 +12,3 @@ new_session = async_sessionmaker(engine, expire_on_commit=False)
 async def get_session() -> AsyncGenerator[AsyncSession]:
     async with new_session() as session:
         yield session
-
-
-async def create_database()  -> None:
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-
-async def delete_database()  -> None:
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
