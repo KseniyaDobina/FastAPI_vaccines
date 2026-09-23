@@ -30,7 +30,7 @@ ignore = [
 #"tests/*" = ["B008"] Depends(...) в дефолтных значениях - нормальный паттерн FastAPI, а не баг. Не в тестах убрала проверку точечно
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 plugins = ["sqlalchemy.ext.mypy.plugin"]
 
 # На старте - мягкий режим
