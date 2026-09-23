@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlalchemy import ForeignKey, MetaData
+from sqlalchemy import ForeignKey, MetaData, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 NAMING_CONVENTION = {
@@ -17,31 +17,29 @@ class Base(DeclarativeBase):
 
 class Vaccine(Base):
     __tablename__ = "vaccines"
+
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"),
-        nullable=False,
-        index=True,
-    )
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     # date_created_note: Mapped[date]
     # date_change_note: Mapped[date]
-    disease: Mapped[str]
-    vaccine_name: Mapped[str]
-    dose_number: Mapped[str]
+    disease: Mapped[str] = mapped_column(String(100))
+    vaccine_name: Mapped[str] = mapped_column(String(100))
+    dose_number: Mapped[str] = mapped_column(String(30))
     vaccination_date: Mapped[date]
     expiration_date: Mapped[date | None]
-    type_vaccine: Mapped[str]
-    lot: Mapped[str]
-    manufacturer: Mapped[str]
-    clinic: Mapped[str]
-    country: Mapped[str]
-    city: Mapped[str]
-    notes: Mapped[str | None] = mapped_column(nullable=True)
+    type_vaccine: Mapped[str] = mapped_column(String(100))
+    lot: Mapped[str] = mapped_column(String(100))
+    manufacturer: Mapped[str] = mapped_column(String(100))
+    clinic: Mapped[str] = mapped_column(String(200))
+    country: Mapped[str] = mapped_column(String(100))
+    city: Mapped[str] = mapped_column(String(100))
+    notes: Mapped[str | None] = mapped_column(String(300), nullable=True)
 
 
 class User(Base):
     __tablename__ = "users"
+
     id: Mapped[int] = mapped_column(primary_key=True)
-    keycloak_id: Mapped[str] = mapped_column(unique=True)
-    username: Mapped[str | None]
-    email: Mapped[str | None]
+    keycloak_id: Mapped[str] = mapped_column(String(255), unique=True)
+    username: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
