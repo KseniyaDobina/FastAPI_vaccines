@@ -2,12 +2,9 @@
 
 > REST API для ведения личного журнала вакцинации.
 
-Во многих медицинских учреждениях информация о ранее сделанных прививках хранится в разных системах или вовсе теряется
-при смене поликлиники. Цель проекта — простой REST API для хранения собственной истории вакцинации, с
-JWT-аутентификацией через Keycloak, Repository pattern, асинхронной работой с БД и автоматизированными тестами.
+Во многих медицинских учреждениях информация о ранее сделанных прививках хранится в разных системах или вовсе теряется при смене поликлиники. Цель проекта — простой REST API для хранения собственной истории вакцинации, с JWT-аутентификацией через Keycloak, Repository pattern, асинхронной работой с БД и автоматизированными тестами.
 
-> ⚠️ Важно: API не связано с государственными или частными медицинскими учреждениями. Все данные вводятся пользователем
-> вручную и не проверяются через системы ОМС, ДМС или другие медицинские сервисы.
+> ⚠️ Важно: API не связано с государственными или частными медицинскими учреждениями. Все данные вводятся пользователем вручную и не проверяются через системы ОМС, ДМС или другие медицинские сервисы.
 
 ---
 
@@ -16,16 +13,23 @@ JWT-аутентификацией через Keycloak, Repository pattern, ас
 ```bash
 git clone https://github.com/KseniyaDobina/FastAPI_vaccines.git
 cd FastAPI_vaccines
-cp .env.example .env   # заполнить PATH_TO_DB, KEYCLOAK_URL, KEYCLOAK_REALM, KEYCLOAK_CLIENT_ID
-docker-compose up
+cp .env.example .env                 # для запуска приложения локально (uvicorn на хосте)
+cp .env.docker.example .env.docker   # для запуска через docker-compose 
+docker-compose up --build
 ```
 
-После запуска документация доступна на [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
-
-Без Docker:
+Docker-compose поднимает три сервиса: Postgres, Keycloak и само API. Приложение внутри контейнера использует `.env.docker` (хосты вида `postgres`, `keycloak`), а при локальном запуске без Docker `.env` (`localhost`). Разница только в хостах подключения, остальные значения совпадают.
+ 
+После запуска документация доступна на [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs), Keycloak — на
+[http://127.0.0.1:8080](http://127.0.0.1:8080).
+ 
+При старте контейнера API миграции Alembic применяются автоматически (`alembic upgrade head`), схему создавать вручную не нужно.
+ 
+Локальный запуск без Docker (Postgres и Keycloak всё равно понадобятся — либо через `docker-compose up postgres keycloak`, либо свои инстансы):
 
 ```bash
 pip install -r requirements.txt
+alembic upgrade head
 uvicorn app_vaccines.main:app --reload
 ```
 
@@ -37,8 +41,7 @@ pip install -r requirements.txt -r requirements-dev.txt
 
 ### Запуск тестов
 
-(реальный Keycloak не требуется — авторизация в тестах подменяется, а JWT-проверка тестируется на самостоятельно
-сгенерированной тестовой RSA-паре):
+(реальный Keycloak не требуется — авторизация в тестах подменяется, а JWT-проверка тестируется на самостоятельно сгенерированной тестовой RSA-паре):
 
 ```bash
 pytest --cov=app_vaccines --cov-report=term-missing
@@ -52,23 +55,24 @@ mypy app_vaccines/
 
 ## 🛠 Стек технологий
 
-| Technology              | Purpose                                  |
-|-------------------------|-------------------------------------------|
-| Python 3.13             | Основной язык                            |
-| FastAPI                 | REST API framework                       |
-| Pydantic                | Валидация и схемы данных                 |
-| pydantic-settings       | Валидация конфигурации из env-переменных |
-| SQLAlchemy 2.x          | ORM (async)                              |
-| SQLite / aiosqlite      | База данных                              |
-| Uvicorn                 | ASGI server                              |
-| PyJWT                   | Проверка JWT (RS256, JWKS)               |
-| HTTPX                   | Асинхронный HTTP-клиент                  |
-| Keycloak                | Аутентификация (OIDC)                    |
-| Pytest / pytest-asyncio | Тестирование                             |
-| Ruff                    | Линтер (стиль, security, docstrings)     |
-| Mypy                    | Статическая проверка типов               |
-| Docker                  | Контейнеризация                          |
-| GitHub Actions          | CI (тесты, линтер, типы)                 |
+| Technology              | Purpose                                    |
+|--------------------------|---------------------------------------------|
+| Python 3.14              | Основной язык                              |
+| FastAPI                  | REST API framework                         |
+| Pydantic                 | Валидация и схемы данных                   |
+| pydantic-settings        | Валидация конфигурации из env-переменных   |
+| SQLAlchemy 2.x           | ORM (async)                                |
+| PostgreSQL / asyncpg     | База данных                                |
+| Alembic                  | Миграции схемы БД                          |
+| Uvicorn                  | ASGI server                                |
+| PyJWT                    | Проверка JWT (RS256, JWKS)                 |
+| HTTPX                    | Асинхронный HTTP-клиент                    |
+| Keycloak                 | Аутентификация (OIDC)                      |
+| Pytest / pytest-asyncio  | Тестирование (на отдельной SQLite БД)      |
+| Ruff                     | Линтер (стиль, security, docstrings)       |
+| Mypy                     | Статическая проверка типов                 |
+| Docker / docker-compose  | Контейнеризация (API, Postgres, Keycloak)  |
+| GitHub Actions           | CI (тесты, линтер, типы)                   |
 ---
 
 ## ✨ Возможности
@@ -84,6 +88,8 @@ ID, создание, полное (`PUT`) и частичное (`PATCH`) об�
  
 **Изоляция данных** — каждый пользователь видит и может изменять только свои записи, на уровне SQL-запросов, а не
 постфактум в Python.
+
+**Схема БД** — управляется через Alembic-миграции (`migrations/`), а не пересоздаётся при каждом старте приложения; поддерживает SQLite (тесты) и PostgreSQL (прод) через общий SQLAlchemy-слой.
  
 **Качество кода** — Ruff и Mypy прогоняются в CI на каждый коммит; покрытие тестами измеряется через `pytest-cov`.
  
@@ -98,32 +104,31 @@ Client
   │
   │ HTTP + JWT
   ▼
-┌─────────────────────┐
-│       FastAPI       │
+┌─────────────────────┐        ┌────────────────┐
+│       FastAPI        │◄──────►│    Keycloak     │
+├─────────────────────┤  OIDC  │ (аутентификация)│
+│      Routers          │        └────────────────┘
 ├─────────────────────┤
-│      Routers        │
+│ Authentication         │
 ├─────────────────────┤
-│ Authentication      │
+│     Repository         │
 ├─────────────────────┤
-│     Repository      │
-├─────────────────────┤
-│    SQLAlchemy       │
+│    SQLAlchemy           │
 └──────────┬──────────┘
            │
            ▼
-        SQLite
+      PostgreSQL
+   (миграции - Alembic)
 ```
 
-Разделение ответственности: `routers/` — HTTP-слой, `auth/` — проверка JWT и получение текущего пользователя,
-`models/repository.py` — доступ к БД и бизнес-логика, `models/db_models.py` / `schemas.py` — ORM-модели и
-Pydantic-схемы.
+Разделение ответственности: `routers/` — HTTP-слой, `auth/` — проверка JWT и получение текущего пользователя, `models/repository.py` — доступ к БД и бизнес-логика, `models/db_models.py` / `schemas.py` — ORM-модели и Pydantic-схемы, `migrations/` — история изменений схемы БД (Alembic).
 
 ---
 
 ## 🧪 Тестирование
 
 ```bash
-pytest
+pytest --cov=app_vaccines --cov-report=term-missing
 ```
 Текущее покрытие тестами — **98%**.
 
@@ -136,6 +141,7 @@ tests/
 ├── auth/
 │   └── test_keycloak.py       # проверка JWT без реального Keycloak
 ├── users/
+│   ├── test_unauthenticated.py
 │   └── test_users.py
 └── vaccines/
     ├── test_unauthenticated.py
@@ -146,21 +152,19 @@ tests/
     └── test_isolation.py
 ```
 
-Покрыто: CRUD по вакцинациям и границы пагинации, валидация входных данных и связанных дат, обработка отсутствующих
-записей, изоляция данных между пользователями, работа с пользователями, а также проверка JWT — валидный токен, истёкший
-срок действия, неверные `audience`/`issuer`, поддельная подпись, неизвестный `kid`, самовосстановление кэша ключей при
-ротации.
+Покрыто: CRUD по вакцинациям и границы пагинации, валидация входных данных и связанных дат, обработка отсутствующих записей, изоляция данных между пользователями, работа с пользователями, а также проверка JWT — валидный токен, истёкший срок действия, неверные `audience`/`issuer`, поддельная подпись, неизвестный `kid`, самовосстановление кэша ключей при ротации.
 
-Для тестов используется отдельная SQLite database и dependency overrides FastAPI; для тестов авторизации —
-самостоятельно сгенерированная тестовая RSA-пара вместо реального Keycloak.
+Для тестов используется отдельная SQLite database (не Postgres) и dependency overrides FastAPI; для тестов авторизации — самостоятельно сгенерированная тестовая RSA-пара вместо реального Keycloak.
 
 ---
 
 ## 📌 Планируемые улучшения
 
 * поиск по заболеванию, фильтрация и сортировка;
-* PostgreSQL + Alembic migrations;
+* пагинация с общим количеством записей (`total`) в ответе;
 * CORS и rate limiting;
+* структурированное логирование и `/health` эндпоинт;
+* прогон тестов на реальном Postgres в CI (сейчас — только SQLite), в дополнение к текущим;
 * строгая типизация тестового кода (сейчас `mypy` проверяет только `app_vaccines/`);
 * улучшение OpenAPI examples.
 
@@ -191,7 +195,13 @@ FastAPI_vaccines/
 │   │   ├── depends.py
 │   │   ├── users.py
 │   │   └── vaccines.py
+│   ├── __init__.py
 │   └── main.py
+│
+├── migrations/
+│   ├── env.py
+│   ├── script.py.mako
+│   └── versions/
 │
 ├── tests/
 │   ├── config.py
@@ -202,9 +212,13 @@ FastAPI_vaccines/
 │
 ├── .github/workflows/tests.yml
 ├── .env.example
+├── .env.docker.example
+├── alembic.ini
 ├── docker-compose.yml
 ├── Dockerfile
-└── requirements.txt
+├── pyproject.toml
+├── requirements.txt
+└── requirements_dev.txt
 ```
 
 </details>
@@ -278,15 +292,11 @@ FastAPI_vaccines/
 <details>
 <summary>Аутентификация и конфигурация</summary>
 
-API использует Bearer JWT authentication. Приложение получает OIDC-конфигурацию и JWKS от Keycloak асинхронно
-(`httpx.AsyncClient`, без блокировки event loop) и использует их для проверки подписи, `audience` и `issuer` каждого
-JWT. Результат кэшируется в памяти процесса; при ротации ключей на стороне Keycloak кэш обновляется автоматически.
+API использует Bearer JWT authentication. Приложение получает OIDC-конфигурацию и JWKS от Keycloak асинхронно (`httpx.AsyncClient`, без блокировки event loop) и использует их для проверки подписи, `audience` и `issuer` каждого JWT. Результат кэшируется в памяти процесса; при ротации ключей на стороне Keycloak кэш обновляется автоматически.
 
-Настройки приложения (`PATH_TO_DB`, `KEYCLOAK_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_CLIENT_ID`) описаны через
-`pydantic-settings` и валидируются при старте: если переменная не задана, приложение упадёт сразу при импорте с понятной
-ошибкой. Локально переменные читаются из `.env` (см. `.env.example`); в контейнере они пробрасываются через
-`env_file` в `docker-compose.yml`, а не копируются внутрь образа (`.env` явно исключён в `.dockerignore`); в CI —
-задаются в `.github/workflows/tests.yml`.
+Настройки приложения (`PATH_TO_DB`, `KEYCLOAK_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_CLIENT_ID`) описаны через `pydantic-settings` и валидируются при старте: если переменная не задана, приложение упадёт сразу при импорте с понятной ошибкой. 
+
+Два файла окружения — `.env` (локальный запуск) и `.env.docker` (запуск в `docker-compose`); оба исключены из git, примеры — `.env.example` и `.env.docker.example`. В контейнере переменные пробрасываются через `env_file`, а не копируются внутрь образа (`.env` и `.env.docker` явно исключены в `.dockerignore`); в CI — задаются в `.github/workflows/tests.yml`.
 
 </details>
 
