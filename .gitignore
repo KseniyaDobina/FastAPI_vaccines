@@ -1,4 +1,5 @@
 .env
+.env.docker
 data/vaccines_db.sqlite3
 test.db
 .coverage

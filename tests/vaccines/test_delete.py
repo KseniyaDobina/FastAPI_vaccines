@@ -38,3 +38,20 @@ async def test_delete_vaccine_not_found(authenticated_client):
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Данные о вакцинации не найдены"
+
+@pytest.mark.asyncio
+async def test_delete_is_committed_and_survives_new_session(
+    authenticated_client, vaccine_in_db, test_db
+):
+    vaccine_id = vaccine_in_db.id
+
+    response = await authenticated_client.delete(f"/vaccines/{vaccine_id}")
+    assert response.status_code == 200
+
+    from tests.conftest import TestingSessionLocal
+
+    async with TestingSessionLocal() as new_session:
+        deleted = await new_session.get(Vaccine, vaccine_id)
+
+    assert deleted is None
+

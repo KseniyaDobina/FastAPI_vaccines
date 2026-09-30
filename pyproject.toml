@@ -1,6 +1,6 @@
 [tool.ruff]
 line-length = 100
-target-version = "py313"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = [
@@ -30,8 +30,7 @@ ignore = [
 #"tests/*" = ["B008"] Depends(...) в дефолтных значениях - нормальный паттерн FastAPI, а не баг. Не в тестах убрала проверку точечно
 
 [tool.mypy]
-python_version = "3.13"
-plugins = ["sqlalchemy.ext.mypy.plugin"]
+python_version = "3.14"
 
 # На старте - мягкий режим
 ignore_missing_imports = true
